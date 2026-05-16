@@ -31,6 +31,10 @@
           {{localize "DHLANG.Settings.defaultRequirement"}}
           <input type="text" value="{{this.requirement}}" data-field="categoryRequirement" data-category-id="{{this.id}}" placeholder="optional" />
         </label>
+        <label>
+          {{localize "DHLANG.Settings.categoryDescription"}}
+          <textarea data-field="categoryDescription" data-category-id="{{this.id}}" placeholder="optional" rows="2">{{this.description}}</textarea>
+        </label>
       </div>
 
       {{!-- Languages --}}
@@ -56,6 +60,10 @@
           <label>
             {{localize "DHLANG.Settings.requirementOverride"}}
             <input type="text" value="{{this.requirement}}" data-field="languageRequirement" data-category-id="{{../id}}" data-language-id="{{this.id}}" placeholder="optional" />
+          </label>
+          <label>
+            {{localize "DHLANG.Settings.languageDescription"}}
+            <textarea data-field="languageDescription" data-category-id="{{../id}}" data-language-id="{{this.id}}" placeholder="optional" rows="2">{{this.description}}</textarea>
           </label>
         </div>
 

@@ -40,7 +40,7 @@ export function injectLanguageBadge(app, html, actor) {
   const acquiredIds = getAcquiredLanguageIds(actor);
   const names = acquiredIds.map(id => findLanguageName(id, config)).filter(Boolean);
   const tooltip = names.length
-    ? names.join(', ')
+    ? game.i18n.format('DHLANG.Badge.speaksLanguages', { languages: names.join(', ') })
     : game.i18n.localize('DHLANG.Badge.noLanguages');
 
   const badge = document.createElement('span');

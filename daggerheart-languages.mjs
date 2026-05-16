@@ -1,6 +1,7 @@
 import { registerSettings } from './scripts/settings.mjs';
 import { ACTOR_TYPES } from './scripts/constants.mjs';
 import { injectLanguageBadge } from './scripts/badge/badge.mjs';
+import './scripts/hooks.mjs';
 
 Hooks.once('init', () => {
   registerSettings();

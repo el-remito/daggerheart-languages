@@ -63,6 +63,7 @@ export class LanguageDialog extends foundry.applications.api.HandlebarsApplicati
         languages.push({
           id:               language.id,
           name:             language.name,
+          description:      language.description ?? null,
           effectiveCost,
           originalCost,
           hasDiscount:      cousinApplied !== null,
@@ -74,7 +75,7 @@ export class LanguageDialog extends foundry.applications.api.HandlebarsApplicati
           canAfford,
         });
       }
-      if (languages.length > 0) categories.push({ id: category.id, name: category.name, languages });
+      if (languages.length > 0) categories.push({ id: category.id, name: category.name, description: category.description ?? null, languages });
     }
 
     const acquiredLanguages = acquiredIds.map(id => {

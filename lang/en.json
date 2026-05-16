@@ -14,6 +14,8 @@
   "DHLANG.Settings.defaultRequirement":    "Default Requirement (optional)",
   "DHLANG.Settings.costOverride":          "Cost Override (optional)",
   "DHLANG.Settings.requirementOverride":   "Requirement Override (optional)",
+  "DHLANG.Settings.categoryDescription":  "Category Description (optional)",
+  "DHLANG.Settings.languageDescription":  "Language Description (optional)",
   "DHLANG.Settings.cousins":               "Cousin Languages",
   "DHLANG.Settings.cousinLanguage":        "Cousin Language",
   "DHLANG.Settings.cousinDiscountedCost":  "Discounted Cost",
@@ -26,7 +28,8 @@
   "DHLANG.Settings.confirmDeleteLanguage": "Delete this language? This cannot be undone until you save.",
   "DHLANG.Settings.confirmDeleteCousin":   "Remove this cousin relationship?",
 
-  "DHLANG.Badge.noLanguages": "No languages known",
+  "DHLANG.Badge.noLanguages": "This creature speaks no known languages",
+  "DHLANG.Badge.speaksLanguages": "This creature speaks the following languages: {languages}",
 
   "DHLANG.Dialog.title":                  "Languages — {name}",
   "DHLANG.Dialog.points":                 "Points",

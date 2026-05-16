@@ -127,6 +127,20 @@ export class LanguageSettingsConfig extends foundry.applications.api.HandlebarsA
       });
     }
 
+    for (const ta of el.querySelectorAll('[data-field="categoryDescription"]')) {
+      ta.addEventListener('input', e => {
+        const cat = this._findCategory(e.currentTarget.dataset.categoryId);
+        if (cat) cat.description = e.target.value || null;
+      });
+    }
+
+    for (const ta of el.querySelectorAll('[data-field="languageDescription"]')) {
+      ta.addEventListener('input', e => {
+        const lang = this._findLanguage(e.currentTarget.dataset.categoryId, e.currentTarget.dataset.languageId);
+        if (lang) lang.description = e.target.value || null;
+      });
+    }
+
     for (const btn of el.querySelectorAll('[data-action="addCousin"]')) {
       btn.addEventListener('click', e => {
         this._addCousin(e.currentTarget.dataset.categoryId, e.currentTarget.dataset.languageId);
@@ -203,6 +217,7 @@ export class LanguageSettingsConfig extends foundry.applications.api.HandlebarsA
       name:        'New Category',
       cost:        1,
       requirement: null,
+      description: null,
       languages:   [],
     });
     this.render();
@@ -226,6 +241,7 @@ export class LanguageSettingsConfig extends foundry.applications.api.HandlebarsA
       name:        'New Language',
       cost:        null,
       requirement: null,
+      description: null,
       cousins:     [],
     });
     this.render();
