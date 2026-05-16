@@ -1,1 +1,5 @@
-// daggerheart-languages entry point — populated in Step 13
+import { registerSettings } from './scripts/settings.mjs';
+
+Hooks.once('init', () => {
+  registerSettings();
+});

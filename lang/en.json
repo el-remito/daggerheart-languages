@@ -1,1 +1,6 @@
-{}
+{
+  "DHLANG.Settings.menuName": "Configure Languages",
+  "DHLANG.Settings.menuLabel": "Open Language Config",
+  "DHLANG.Settings.menuHint": "Define language categories, costs, and acquisition requirements for your world.",
+  "DHLANG.Settings.title": "Language Configuration"
+}
