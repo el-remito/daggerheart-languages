@@ -1,3 +1,69 @@
 <div class="dh-languages-dialog">
-  <p>Language Dialog — full UI coming in Step 8.</p>
+
+  {{!-- Point pool (PC only) --}}
+  {{#if isPC}}
+  <div class="point-bar">
+    <span class="point-label">{{localize "DHLANG.Dialog.points"}}</span>
+    <span class="point-values">{{pool.spent}} / {{pool.total}}</span>
+  </div>
+  {{/if}}
+
+  {{!-- Adversary note --}}
+  {{#if isAdversary}}
+  <p class="adversary-note">{{localize "DHLANG.Dialog.adversaryFreeNote"}}</p>
+  {{/if}}
+
+  {{!-- Available languages by category --}}
+  {{#each categories}}
+  <details class="lang-category" open>
+    <summary class="lang-category-name">{{this.name}}</summary>
+    {{#each this.languages}}
+    <div class="lang-row {{#unless this.canAfford}}unaffordable{{/unless}} {{#unless this.requirementMet}}unmet-requirement{{/unless}}">
+      <span class="lang-name">{{this.name}}</span>
+      <span class="lang-cost">
+        {{localize "DHLANG.Dialog.cost"}}:
+        {{#if this.hasDiscount}}
+          <del>{{this.originalCost}}</del> → {{this.effectiveCost}}
+        {{else}}
+          {{this.effectiveCost}}
+        {{/if}}
+      </span>
+      {{#if this.alreadyAcquired}}
+        <span class="lang-acquired-tag">✓</span>
+      {{else}}
+        <button
+          type="button"
+          data-action="acquireLanguage"
+          data-language-id="{{this.id}}"
+          {{#unless this.canAcquire}}disabled{{/unless}}
+          {{#if this.requirementTooltip}}data-tooltip="{{this.requirementTooltip}}"{{/if}}
+        >{{localize "DHLANG.Dialog.acquire"}}</button>
+      {{/if}}
+    </div>
+    {{/each}}
+  </details>
+  {{else}}
+  <p class="no-languages-hint">{{localize "DHLANG.Dialog.noLanguagesConfigured"}}</p>
+  {{/each}}
+
+  {{!-- Acquired languages --}}
+  {{#if acquiredLanguages.length}}
+  <div class="acquired-section">
+    <h3>{{localize "DHLANG.Dialog.acquired"}}</h3>
+    {{#each acquiredLanguages}}
+    <div class="acquired-row">
+      <span class="lang-name">{{this.name}}</span>
+      {{#if ../isGM}}
+      <button
+        type="button"
+        data-action="removeLanguage"
+        data-language-id="{{this.id}}"
+        class="remove-btn"
+      >{{localize "DHLANG.Dialog.remove"}}</button>
+      {{/if}}
+    </div>
+    {{/each}}
+  </div>
+  {{/if}}
+
 </div>

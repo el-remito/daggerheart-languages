@@ -1,8 +1,21 @@
 {
-  "DHLANG.Settings.menuName": "Configure Languages",
+  "DHLANG.Settings.menuName":  "Configure Languages",
   "DHLANG.Settings.menuLabel": "Open Language Config",
-  "DHLANG.Settings.menuHint": "Define language categories, costs, and acquisition requirements for your world.",
-  "DHLANG.Settings.title": "Language Configuration",
+  "DHLANG.Settings.menuHint":  "Define language categories, costs, and acquisition requirements for your world.",
+  "DHLANG.Settings.title":     "Language Configuration",
 
-  "DHLANG.Badge.noLanguages": "No languages known"
+  "DHLANG.Badge.noLanguages": "No languages known",
+
+  "DHLANG.Dialog.title":                  "Languages — {name}",
+  "DHLANG.Dialog.points":                 "Points",
+  "DHLANG.Dialog.cost":                   "Cost",
+  "DHLANG.Dialog.acquire":                "Acquire",
+  "DHLANG.Dialog.acquired":               "Acquired Languages",
+  "DHLANG.Dialog.remove":                 "Remove",
+  "DHLANG.Dialog.cousinDiscount":         "Cousin discount applied",
+  "DHLANG.Dialog.requirementUnmet":       "Requirement not met: {requirement}",
+  "DHLANG.Dialog.confirmAcquireTitle":    "Acquire Language",
+  "DHLANG.Dialog.confirmAcquireContent":  "Acquire {name} for {cost} point(s)? This cannot be undone without GM intervention.",
+  "DHLANG.Dialog.adversaryFreeNote":      "Point costs are displayed but not enforced for adversaries.",
+  "DHLANG.Dialog.noLanguagesConfigured":  "No languages have been configured. Ask your GM to set up languages in Module Settings."
 }

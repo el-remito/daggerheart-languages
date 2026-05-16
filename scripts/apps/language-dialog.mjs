@@ -1,19 +1,147 @@
-// Full implementation in Step 8 — stub so badge.mjs lazy import resolves.
+import { MODULE_ID, FLAGS, SETTINGS, TEMPLATES } from '../constants.mjs';
+import { evaluateRequirement } from '../utils/formula.mjs';
+import {
+  getAcquiredLanguageIds,
+  resolveLanguageCost,
+  resolveEffectiveRequirement,
+  calculatePointPool,
+} from '../utils/languages.mjs';
+
 export class LanguageDialog extends foundry.applications.api.HandlebarsApplicationMixin(
   foundry.applications.api.ApplicationV2
 ) {
   static DEFAULT_OPTIONS = {
     id:       'dh-language-dialog',
     classes:  ['daggerheart', 'dh-languages-dialog'],
-    window:   { title: 'DHLANG.Dialog.title', resizable: true },
-    position: { width: 500, height: 'auto' },
+    window:   { resizable: true },
+    position: { width: 520, height: 'auto' },
   };
 
   static PARTS = {
-    main: { template: 'modules/daggerheart-languages/templates/language-dialog.hbs' },
+    main: { template: TEMPLATES.LANGUAGE_DIALOG },
   };
+
+  constructor(options = {}) {
+    super(options);
+    this.actor = options.actor;
+  }
+
+  get title() {
+    return game.i18n.format('DHLANG.Dialog.title', { name: this.actor.name });
+  }
 
   static open(actor) {
     new LanguageDialog({ actor }).render(true);
+  }
+
+  async _prepareContext(_options) {
+    const config = game.settings.get(MODULE_ID, SETTINGS.CONFIG);
+    const acquiredIds = getAcquiredLanguageIds(this.actor);
+    const isPC = this.actor.type === 'character';
+    const isGM = game.user.isGM;
+
+    const pool = isPC ? await calculatePointPool(this.actor, config) : null;
+
+    const categories = [];
+    for (const category of (config.categories ?? [])) {
+      const languages = [];
+      for (const language of (category.languages ?? [])) {
+        const alreadyAcquired = acquiredIds.includes(language.id);
+        const { effectiveCost, originalCost, cousinApplied, requirementWaived } =
+          await resolveLanguageCost(language, category, this.actor);
+        const requirementFormula = resolveEffectiveRequirement(language, category, requirementWaived);
+        const requirementMet = await evaluateRequirement(requirementFormula, this.actor);
+
+        const canAfford = isPC ? (pool.remaining >= effectiveCost) : true;
+        // Adversaries: cost and requirements are display-only, never enforced.
+        const canAcquire = !alreadyAcquired && (isPC ? (canAfford && requirementMet) : true);
+
+        const requirementTooltip = (!requirementMet && requirementFormula)
+          ? game.i18n.format('DHLANG.Dialog.requirementUnmet', { requirement: requirementFormula })
+          : '';
+
+        languages.push({
+          id:               language.id,
+          name:             language.name,
+          effectiveCost,
+          originalCost,
+          hasDiscount:      cousinApplied !== null,
+          requirementFormula,
+          requirementTooltip,
+          requirementMet,
+          alreadyAcquired,
+          canAcquire,
+          canAfford,
+        });
+      }
+      if (languages.length > 0) categories.push({ id: category.id, name: category.name, languages });
+    }
+
+    const acquiredLanguages = acquiredIds.map(id => {
+      for (const cat of (config.categories ?? [])) {
+        const lang = (cat.languages ?? []).find(l => l.id === id);
+        if (lang) return { id: lang.id, name: lang.name };
+      }
+      return { id, name: id };
+    });
+
+    return {
+      actor:      this.actor,
+      isPC,
+      isGM,
+      pool,
+      categories,
+      acquiredLanguages,
+      isAdversary: this.actor.type === 'adversary',
+    };
+  }
+
+  _onRender(context, _options) {
+    // Acquire buttons
+    for (const btn of this.element.querySelectorAll('[data-action="acquireLanguage"]')) {
+      btn.addEventListener('click', this._onAcquireLanguage.bind(this));
+    }
+    // Remove buttons (GM only)
+    for (const btn of this.element.querySelectorAll('[data-action="removeLanguage"]')) {
+      btn.addEventListener('click', this._onRemoveLanguage.bind(this));
+    }
+  }
+
+  async _onAcquireLanguage(event) {
+    const languageId = event.currentTarget.dataset.languageId;
+    const config = game.settings.get(MODULE_ID, SETTINGS.CONFIG);
+
+    let languageName = languageId;
+    let effectiveCost = 0;
+    for (const cat of (config.categories ?? [])) {
+      const lang = (cat.languages ?? []).find(l => l.id === languageId);
+      if (lang) {
+        languageName = lang.name;
+        const resolved = await resolveLanguageCost(lang, cat, this.actor);
+        effectiveCost = resolved.effectiveCost;
+        break;
+      }
+    }
+
+    const confirmed = await foundry.applications.api.DialogV2.confirm({
+      window: { title: game.i18n.localize('DHLANG.Dialog.confirmAcquireTitle') },
+      content: `<p>${game.i18n.format('DHLANG.Dialog.confirmAcquireContent', {
+        name: languageName,
+        cost: effectiveCost,
+      })}</p>`,
+    });
+    if (!confirmed) return;
+
+    const acquired = getAcquiredLanguageIds(this.actor);
+    await this.actor.setFlag(MODULE_ID, FLAGS.ACQUIRED, [...acquired, languageId]);
+    this.render();
+  }
+
+  async _onRemoveLanguage(event) {
+    if (!game.user.isGM) return;
+    const languageId = event.currentTarget.dataset.languageId;
+    const acquired = getAcquiredLanguageIds(this.actor);
+    await this.actor.setFlag(MODULE_ID, FLAGS.ACQUIRED, acquired.filter(id => id !== languageId));
+    this.render();
   }
 }
