@@ -123,14 +123,16 @@ export class LanguageDialog extends foundry.applications.api.HandlebarsApplicati
       }
     }
 
-    const confirmed = await foundry.applications.api.DialogV2.confirm({
-      window: { title: game.i18n.localize('DHLANG.Dialog.confirmAcquireTitle') },
-      content: `<p>${game.i18n.format('DHLANG.Dialog.confirmAcquireContent', {
-        name: languageName,
-        cost: effectiveCost,
-      })}</p>`,
-    });
-    if (!confirmed) return;
+    if (this.actor.type !== 'adversary') {
+      const confirmed = await foundry.applications.api.DialogV2.confirm({
+        window: { title: game.i18n.localize('DHLANG.Dialog.confirmAcquireTitle') },
+        content: `<p>${game.i18n.format('DHLANG.Dialog.confirmAcquireContent', {
+          name: languageName,
+          cost: effectiveCost,
+        })}</p>`,
+      });
+      if (!confirmed) return;
+    }
 
     const acquired = getAcquiredLanguageIds(this.actor);
     await this.actor.setFlag(MODULE_ID, FLAGS.ACQUIRED, [...acquired, languageId]);

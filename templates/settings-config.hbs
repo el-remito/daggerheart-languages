@@ -1,3 +1,109 @@
 <div class="dh-settings-config">
-  <p>Language Settings — full UI coming in Step 9.</p>
+
+  {{!-- Point pool formula --}}
+  <div class="config-section formula-section">
+    <label for="point-formula">{{localize "DHLANG.Settings.pointFormula"}}</label>
+    <input id="point-formula" type="text" value="{{config.pointFormula}}" placeholder="2" />
+    <p class="hint">{{pointFormulaHint}}</p>
+  </div>
+
+  {{!-- Categories --}}
+  <div class="config-section categories-section">
+    {{#each config.categories}}
+    <details class="config-category" open>
+      <summary class="category-header">
+        <input
+          type="text"
+          value="{{this.name}}"
+          data-field="categoryName"
+          data-category-id="{{this.id}}"
+          placeholder="{{localize 'DHLANG.Settings.categoryName'}}"
+        />
+        <button type="button" data-action="removeCategory" data-category-id="{{this.id}}" class="remove-btn danger">✕</button>
+      </summary>
+
+      <div class="category-defaults">
+        <label>
+          {{localize "DHLANG.Settings.defaultCost"}}
+          <input type="text" value="{{this.cost}}" data-field="categoryCost" data-category-id="{{this.id}}" />
+        </label>
+        <label>
+          {{localize "DHLANG.Settings.defaultRequirement"}}
+          <input type="text" value="{{this.requirement}}" data-field="categoryRequirement" data-category-id="{{this.id}}" placeholder="optional" />
+        </label>
+      </div>
+
+      {{!-- Languages --}}
+      {{#each this.languages}}
+      <details class="config-language" open>
+        <summary class="language-header">
+          <input
+            type="text"
+            value="{{this.name}}"
+            data-field="languageName"
+            data-category-id="{{../id}}"
+            data-language-id="{{this.id}}"
+            placeholder="{{localize 'DHLANG.Settings.languageName'}}"
+          />
+          <button type="button" data-action="removeLanguage" data-category-id="{{../id}}" data-language-id="{{this.id}}" class="remove-btn danger">✕</button>
+        </summary>
+
+        <div class="language-fields">
+          <label>
+            {{localize "DHLANG.Settings.costOverride"}}
+            <input type="text" value="{{this.cost}}" data-field="languageCost" data-category-id="{{../id}}" data-language-id="{{this.id}}" placeholder="optional" />
+          </label>
+          <label>
+            {{localize "DHLANG.Settings.requirementOverride"}}
+            <input type="text" value="{{this.requirement}}" data-field="languageRequirement" data-category-id="{{../id}}" data-language-id="{{this.id}}" placeholder="optional" />
+          </label>
+        </div>
+
+        {{!-- Cousins --}}
+        <div class="cousin-section">
+          <h4>{{localize "DHLANG.Settings.cousins"}}</h4>
+          {{#each this.cousins}}
+          <div class="cousin-row">
+            <select data-field="cousinLanguageId" data-category-id="{{../../id}}" data-language-id="{{../id}}" data-cousin-index="{{@index}}">
+              <option value="">— {{localize "DHLANG.Settings.cousinLanguage"}} —</option>
+              {{#each ../_cousinOptions}}
+              <option value="{{this.id}}" {{#if (eq this.id ../../languageId)}}selected{{/if}}>{{this.name}}</option>
+              {{/each}}
+            </select>
+            <label class="cousin-cost">
+              {{localize "DHLANG.Settings.cousinDiscountedCost"}}
+              <input type="text" value="{{this.discountedCost}}" data-field="cousinDiscountedCost" data-category-id="{{../../id}}" data-language-id="{{../id}}" data-cousin-index="{{@index}}" />
+            </label>
+            <label class="cousin-waive">
+              <input type="checkbox" {{#if this.waiveRequirement}}checked{{/if}} data-field="cousinWaiveRequirement" data-category-id="{{../../id}}" data-language-id="{{../id}}" data-cousin-index="{{@index}}" />
+              {{localize "DHLANG.Settings.cousinWaiveRequirement"}}
+            </label>
+            <button type="button" data-action="removeCousin" data-category-id="{{../../id}}" data-language-id="{{../id}}" data-cousin-index="{{@index}}" class="remove-btn danger">✕</button>
+          </div>
+          {{/each}}
+          <button type="button" data-action="addCousin" data-category-id="{{../id}}" data-language-id="{{this.id}}" class="add-btn">
+            + {{localize "DHLANG.Settings.addCousin"}}
+          </button>
+        </div>
+
+      </details>
+      {{/each}}
+
+      <button type="button" data-action="addLanguage" data-category-id="{{this.id}}" class="add-btn">
+        + {{localize "DHLANG.Settings.addLanguage"}}
+      </button>
+    </details>
+    {{/each}}
+
+    <button type="button" data-action="addCategory" class="add-btn category-add-btn">
+      + {{localize "DHLANG.Settings.addCategory"}}
+    </button>
+  </div>
+
+  {{!-- Footer --}}
+  <div class="config-footer">
+    <button type="button" data-action="saveConfig" class="save-btn">{{localize "DHLANG.Settings.save"}}</button>
+    <button type="button" data-action="cancelConfig" class="cancel-btn">{{localize "DHLANG.Settings.cancel"}}</button>
+  </div>
+
 </div>

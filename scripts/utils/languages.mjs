@@ -42,7 +42,7 @@ export function findLanguage(languageId, config) {
  * @returns {Promise<{ effectiveCost: number, originalCost: number, cousinApplied: object|null, requirementWaived: boolean }>}
  */
 export async function resolveLanguageCost(language, category, actor) {
-  const originalCost = language.cost ?? category.cost ?? 0;
+  const originalCost = Number(language.cost ?? category.cost ?? 0);
   const acquiredIds = getAcquiredLanguageIds(actor);
   const matchingCousins = (language.cousins ?? []).filter(c => acquiredIds.includes(c.languageId));
 
@@ -101,7 +101,8 @@ export async function calculatePointPool(actor, config) {
   for (const id of acquiredIds) {
     const found = findLanguage(id, config);
     if (!found) continue;
-    spent += found.language.cost ?? found.category.cost ?? 0;
+    const { effectiveCost } = await resolveLanguageCost(found.language, found.category, actor);
+    spent += effectiveCost;
   }
 
   return { total, spent, remaining: total - spent };
