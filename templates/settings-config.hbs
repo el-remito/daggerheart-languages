@@ -12,6 +12,7 @@
     {{#each config.categories}}
     <details class="config-category" open>
       <summary class="category-header">
+        <span class="dh-collapse-arrow">▶</span>
         <input
           type="text"
           value="{{this.name}}"
@@ -41,6 +42,7 @@
       {{#each this.languages}}
       <details class="config-language" open>
         <summary class="language-header">
+          <span class="dh-collapse-arrow">▶</span>
           <input
             type="text"
             value="{{this.name}}"

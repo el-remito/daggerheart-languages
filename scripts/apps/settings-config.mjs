@@ -23,7 +23,7 @@ export class LanguageSettingsConfig extends foundry.applications.api.HandlebarsA
     id:       'dh-language-settings',
     classes:  ['daggerheart', 'dh-settings-config'],
     window:   { title: 'DHLANG.Settings.title', resizable: true },
-    position: { width: 680, height: 'auto' },
+    position: { width: 680, height: 650 },
   };
 
   static PARTS = {

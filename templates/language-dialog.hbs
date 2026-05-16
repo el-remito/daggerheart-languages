@@ -22,25 +22,27 @@
     <div class="lang-row {{#unless this.canAfford}}unaffordable{{/unless}} {{#unless this.requirementMet}}unmet-requirement{{/unless}}">
       <span class="lang-name">{{this.name}}</span>
       {{#if this.description}}<p class="lang-description">{{this.description}}</p>{{/if}}
-      <span class="lang-cost">
-        {{localize "DHLANG.Dialog.cost"}}:
-        {{#if this.hasDiscount}}
-          <del>{{this.originalCost}}</del> → {{this.effectiveCost}}
+      <div class="lang-actions">
+        <span class="lang-cost">
+          {{localize "DHLANG.Dialog.cost"}}:
+          {{#if this.hasDiscount}}
+            <del>{{this.originalCost}}</del> → {{this.effectiveCost}}
+          {{else}}
+            {{this.effectiveCost}}
+          {{/if}}
+        </span>
+        {{#if this.alreadyAcquired}}
+          <span class="lang-acquired-tag">✓</span>
         {{else}}
-          {{this.effectiveCost}}
+          <button
+            type="button"
+            data-action="acquireLanguage"
+            data-language-id="{{this.id}}"
+            {{#unless this.canAcquire}}disabled{{/unless}}
+            {{#if this.requirementTooltip}}data-tooltip="{{this.requirementTooltip}}"{{/if}}
+          >{{localize "DHLANG.Dialog.acquire"}}</button>
         {{/if}}
-      </span>
-      {{#if this.alreadyAcquired}}
-        <span class="lang-acquired-tag">✓</span>
-      {{else}}
-        <button
-          type="button"
-          data-action="acquireLanguage"
-          data-language-id="{{this.id}}"
-          {{#unless this.canAcquire}}disabled{{/unless}}
-          {{#if this.requirementTooltip}}data-tooltip="{{this.requirementTooltip}}"{{/if}}
-        >{{localize "DHLANG.Dialog.acquire"}}</button>
-      {{/if}}
+      </div>
     </div>
     {{/each}}
   </details>

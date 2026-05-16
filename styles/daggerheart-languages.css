@@ -1,1 +1,583 @@
-/* daggerheart-languages styles — populated in Step 12 */
+/* ── Badge ──────────────────────────────────────────────────────────────── */
+
+.dh-lang-badge {
+  display:        inline-flex;
+  align-items:    center;
+  justify-content: center;
+  margin-left:    0.4em;
+  padding:        0.15em 0.35em;
+  border-radius:  4px;
+  background:     rgba(255, 255, 255, 0.08);
+  color:          #c9aa71;
+  font-size:      0.85em;
+  cursor:         default;
+  vertical-align: middle;
+  transition:     background 0.15s, color 0.15s;
+  line-height:    1;
+}
+
+.dh-lang-badge:hover {
+  background: rgba(201, 170, 113, 0.2);
+  color:      #e8cc90;
+}
+
+.dh-lang-badge i {
+  pointer-events: none;
+}
+
+/* ── Language Dialog ────────────────────────────────────────────────────── */
+
+.dh-languages-dialog {
+  padding: 0.75rem 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  font-family: inherit;
+  color: #ddd;
+}
+
+/* Point bar */
+.dh-languages-dialog .point-bar {
+  display:         flex;
+  align-items:     center;
+  gap:             0.6em;
+  padding:         0.4em 0.6em;
+  background:      rgba(255, 255, 255, 0.05);
+  border:          1px solid rgba(201, 170, 113, 0.3);
+  border-radius:   4px;
+  font-size:       0.9em;
+}
+
+.dh-languages-dialog .point-label {
+  color:       #c9aa71;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+.dh-languages-dialog .point-values {
+  color: #ddd;
+}
+
+/* Adversary note */
+.dh-languages-dialog .adversary-note {
+  font-style: italic;
+  color:      #aaa;
+  font-size:  0.85em;
+  margin:     0;
+}
+
+/* Category */
+.dh-languages-dialog .lang-category {
+  border:        1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+  overflow:      hidden;
+}
+
+.dh-languages-dialog .lang-category-name {
+  padding:     0.4em 0.6em;
+  font-weight: 700;
+  font-size:   0.95em;
+  color:       #c9aa71;
+  cursor:      pointer;
+  background:  rgba(255, 255, 255, 0.04);
+  list-style:  none;
+  display:     flex;
+  align-items: center;
+  gap:         0.4em;
+}
+
+.dh-languages-dialog .lang-category-name::before {
+  content:     "▶";
+  font-size:   0.6em;
+  transition:  transform 0.15s;
+}
+
+.dh-languages-dialog .lang-category[open] .lang-category-name::before {
+  transform: rotate(90deg);
+}
+
+.dh-languages-dialog .lang-category-description {
+  font-style: italic;
+  color:      #aaa;
+  font-size:  0.82em;
+  margin:     0.2em 0.8em 0.4em;
+}
+
+.dh-languages-dialog .lang-category-description::before {
+  content:     "Description: ";
+  font-style:  normal;
+  font-weight: 600;
+  color:       #c9aa71;
+}
+
+/* Language row */
+.dh-languages-dialog .lang-row {
+  display:     flex;
+  align-items: center;
+  flex-wrap:   wrap;
+  gap:         0.3em 0.6em;
+  padding:     0.35em 0.8em;
+  border-top:  1px solid rgba(255, 255, 255, 0.05);
+}
+
+.dh-languages-dialog .lang-row:hover {
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.dh-languages-dialog .lang-row.unaffordable,
+.dh-languages-dialog .lang-row.unmet-requirement {
+  opacity: 0.5;
+}
+
+.dh-languages-dialog .lang-name {
+  flex:        1 1 auto;
+  font-weight: 600;
+  color:       #eee;
+}
+
+.dh-languages-dialog .lang-description {
+  flex:       1 0 100%;
+  font-style: italic;
+  color:      #aaa;
+  font-size:  0.82em;
+  margin:     0 0 0.2em;
+}
+
+.dh-languages-dialog .lang-description::before {
+  content:     "Description: ";
+  font-style:  normal;
+  font-weight: 600;
+  color:       #c9aa71;
+}
+
+/* Actions container: holds cost + acquire/acquired — guarantees vertical alignment */
+.dh-languages-dialog .lang-actions {
+  display:     flex;
+  align-items: center;
+  gap:         0.5em;
+  margin-left: auto;
+  flex-shrink: 0;
+}
+
+.dh-languages-dialog .lang-cost {
+  color:      #aaa;
+  font-size:  0.88em;
+  white-space: nowrap;
+}
+
+.dh-languages-dialog .lang-cost del {
+  color:           #888;
+  text-decoration: line-through;
+}
+
+.dh-languages-dialog .lang-acquired-tag {
+  color:     #6dbf6d;
+  font-size: 0.9em;
+}
+
+/* Acquired section */
+.dh-languages-dialog .no-languages-hint {
+  color:      #888;
+  font-style: italic;
+  font-size:  0.88em;
+  text-align: center;
+  margin:     0.5em 0;
+}
+
+.dh-languages-dialog .acquired-section {
+  border-top:  2px solid rgba(201, 170, 113, 0.3);
+  padding-top: 0.5em;
+  margin-top:  0.25em;
+}
+
+.dh-languages-dialog .acquired-section h3 {
+  color:       #c9aa71;
+  font-size:   0.9em;
+  font-weight: 700;
+  margin:      0 0 0.4em;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.dh-languages-dialog .acquired-row {
+  display:     flex;
+  align-items: center;
+  gap:         0.5em;
+  padding:     0.2em 0;
+}
+
+/* Buttons in language dialog */
+.dh-languages-dialog button {
+  padding:       0.2em 0.7em;
+  border-radius: 3px;
+  font-size:     0.82em;
+  cursor:        pointer;
+  border:        1px solid rgba(201, 170, 113, 0.5);
+  background:    rgba(201, 170, 113, 0.12);
+  color:         #c9aa71;
+  transition:    background 0.15s;
+  flex-shrink:   0;
+}
+
+.dh-languages-dialog button:hover:not(:disabled) {
+  background: rgba(201, 170, 113, 0.28);
+}
+
+.dh-languages-dialog button:disabled {
+  opacity: 0.35;
+  cursor:  not-allowed;
+}
+
+.dh-languages-dialog .remove-btn {
+  border-color: rgba(200, 80, 80, 0.5);
+  background:   rgba(200, 80, 80, 0.1);
+  color:        #e07070;
+}
+
+.dh-languages-dialog .remove-btn:hover {
+  background: rgba(200, 80, 80, 0.25);
+}
+
+/* ── Settings Config ────────────────────────────────────────────────────── */
+
+/* Settings window: fixed height set in JS (position.height: 650).
+   Make window-content scroll when content overflows. */
+#dh-language-settings .window-content {
+  overflow-y:      auto;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(201, 170, 113, 0.5) rgba(255, 255, 255, 0.05);
+}
+
+#dh-language-settings .window-content::-webkit-scrollbar       { width: 6px; }
+#dh-language-settings .window-content::-webkit-scrollbar-track { background: rgba(255,255,255,0.05); border-radius: 3px; }
+#dh-language-settings .window-content::-webkit-scrollbar-thumb { background: rgba(201,170,113,0.5);  border-radius: 3px; }
+#dh-language-settings .window-content::-webkit-scrollbar-thumb:hover { background: rgba(201,170,113,0.8); }
+
+.dh-settings-config {
+  padding:        0.75rem 1rem;
+  display:        flex;
+  flex-direction: column;
+  gap:            0.75rem;
+  color:          #ddd;
+  font-family:    inherit;
+}
+
+/* Formula section */
+.dh-settings-config .formula-section {
+  display:        flex;
+  flex-direction: column;
+  gap:            0.3em;
+}
+
+.dh-settings-config .formula-section label {
+  color:       #c9aa71;
+  font-weight: 600;
+  font-size:   0.9em;
+}
+
+.dh-settings-config .formula-section input {
+  width:         100%;
+  background:    rgba(255, 255, 255, 0.06);
+  border:        1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 3px;
+  padding:       0.3em 0.5em;
+  color:         #eee;
+  font-size:     0.9em;
+}
+
+.dh-settings-config .hint {
+  font-size:  0.78em;
+  color:      #888;
+  font-style: italic;
+  margin:     0;
+  line-height: 1.4;
+}
+
+/* Categories container — no inner scroll; the window-content scrolls */
+.dh-settings-config .categories-section {
+  display:        flex;
+  flex-direction: column;
+  gap:            0.6rem;
+}
+
+/* Category block */
+.dh-settings-config .config-category {
+  border:        1px solid rgba(201, 170, 113, 0.3);
+  border-radius: 5px;
+  overflow:      hidden;
+  background:    rgba(255, 255, 255, 0.03);
+}
+
+.dh-settings-config .category-header {
+  display:     flex;
+  align-items: center;
+  gap:         0.5em;
+  padding:     0.4em 0.6em;
+  background:  rgba(201, 170, 113, 0.1);
+  cursor:      pointer;
+  list-style:  none;
+}
+
+/* Suppress native browser disclosure triangle on both summary types */
+.dh-settings-config .category-header,
+.dh-settings-config .language-header {
+  list-style: none;
+}
+.dh-settings-config .category-header::-webkit-details-marker,
+.dh-settings-config .language-header::-webkit-details-marker {
+  display: none;
+}
+
+/* Explicit arrow span — reliable across all browsers */
+.dh-settings-config .dh-collapse-arrow {
+  flex-shrink: 0;
+  width:       1em;
+  text-align:  center;
+  font-size:   0.75em;
+  color:       #c9aa71;
+  transition:  transform 0.15s;
+  user-select: none;
+}
+
+.dh-settings-config .config-category[open] > .category-header  .dh-collapse-arrow,
+.dh-settings-config .config-language[open] > .language-header  .dh-collapse-arrow {
+  transform: rotate(90deg);
+}
+
+.dh-settings-config .category-header input[type="text"] {
+  flex:          1;
+  background:    transparent;
+  border:        none;
+  border-bottom: 1px solid rgba(201, 170, 113, 0.4);
+  color:         #c9aa71;
+  font-weight:   700;
+  font-size:     0.95em;
+  padding:       0.1em 0.3em;
+}
+
+.dh-settings-config .category-header input[type="text"]:focus {
+  outline:       none;
+  border-bottom-color: #c9aa71;
+}
+
+.dh-settings-config .category-defaults {
+  padding:        0.5em 0.75em;
+  display:        flex;
+  flex-direction: column;
+  gap:            0.4em;
+  border-bottom:  1px solid rgba(255, 255, 255, 0.07);
+}
+
+/* Language block */
+.dh-settings-config .config-language {
+  margin:        0.4em 0.75em;
+  border:        1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+  background:    rgba(255, 255, 255, 0.02);
+}
+
+.dh-settings-config .language-header {
+  display:     flex;
+  align-items: center;
+  gap:         0.4em;
+  padding:     0.3em 0.5em;
+  background:  rgba(255, 255, 255, 0.04);
+  cursor:      pointer;
+  list-style:  none;
+}
+
+/* Language arrow is slightly muted vs category arrow */
+.dh-settings-config .config-language > .language-header .dh-collapse-arrow {
+  color:     #aaa;
+  font-size: 0.65em;
+}
+
+.dh-settings-config .language-header input[type="text"] {
+  flex:       1;
+  background: transparent;
+  border:     none;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+  color:      #ddd;
+  font-size:  0.88em;
+  padding:    0.1em 0.2em;
+}
+
+.dh-settings-config .language-header input[type="text"]:focus {
+  outline:           none;
+  border-bottom-color: #aaa;
+}
+
+.dh-settings-config .language-fields {
+  padding:        0.4em 0.6em;
+  display:        flex;
+  flex-direction: column;
+  gap:            0.35em;
+  border-bottom:  1px solid rgba(255, 255, 255, 0.06);
+}
+
+/* Shared label + input/textarea stacking */
+.dh-settings-config label {
+  display:        flex;
+  flex-direction: column;
+  gap:            0.2em;
+  font-size:      0.82em;
+  color:          #aaa;
+}
+
+.dh-settings-config label input[type="text"],
+.dh-settings-config label textarea {
+  background:    rgba(255, 255, 255, 0.06);
+  border:        1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 3px;
+  padding:       0.25em 0.4em;
+  color:         #eee;
+  font-size:     1em;
+  font-family:   inherit;
+  resize:        vertical;
+}
+
+.dh-settings-config label input[type="text"]:focus,
+.dh-settings-config label textarea:focus {
+  outline:      none;
+  border-color: rgba(201, 170, 113, 0.6);
+}
+
+/* Cousin section */
+.dh-settings-config .cousin-section {
+  padding: 0.4em 0.6em;
+}
+
+.dh-settings-config .cousin-section h4 {
+  color:          #c9aa71;
+  font-size:      0.8em;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin:         0 0 0.35em;
+  font-weight:    700;
+}
+
+.dh-settings-config .cousin-row {
+  display:     flex;
+  align-items: center;
+  flex-wrap:   wrap;
+  gap:         0.4em;
+  padding:     0.3em 0;
+  border-top:  1px solid rgba(255, 255, 255, 0.05);
+}
+
+.dh-settings-config .cousin-row select {
+  flex:          1 1 auto;
+  background:    rgba(255, 255, 255, 0.06);
+  border:        1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 3px;
+  padding:       0.25em 0.4em;
+  color:         #eee;
+  font-size:     0.82em;
+}
+
+.dh-settings-config .cousin-cost {
+  display:     flex;
+  align-items: center;
+  gap:         0.3em;
+  flex-direction: row;
+  font-size:   0.82em;
+  color:       #aaa;
+  flex-wrap:   nowrap;
+}
+
+.dh-settings-config .cousin-cost input {
+  width:         4em;
+  background:    rgba(255, 255, 255, 0.06);
+  border:        1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 3px;
+  padding:       0.2em 0.3em;
+  color:         #eee;
+  font-size:     1em;
+}
+
+.dh-settings-config .cousin-waive {
+  display:     flex;
+  flex-direction: row;
+  align-items: center;
+  gap:         0.3em;
+  font-size:   0.82em;
+  color:       #aaa;
+}
+
+/* Buttons */
+.dh-settings-config .add-btn {
+  margin-top:    0.3em;
+  padding:       0.25em 0.7em;
+  border:        1px dashed rgba(201, 170, 113, 0.4);
+  border-radius: 3px;
+  background:    transparent;
+  color:         #c9aa71;
+  font-size:     0.82em;
+  cursor:        pointer;
+  transition:    background 0.15s;
+  display:       block;
+}
+
+.dh-settings-config .add-btn:hover {
+  background: rgba(201, 170, 113, 0.1);
+}
+
+.dh-settings-config .category-add-btn {
+  align-self: flex-start;
+}
+
+.dh-settings-config .remove-btn {
+  padding:       0.15em 0.45em;
+  border:        1px solid rgba(200, 80, 80, 0.4);
+  border-radius: 3px;
+  background:    rgba(200, 80, 80, 0.08);
+  color:         #e07070;
+  font-size:     0.8em;
+  cursor:        pointer;
+  transition:    background 0.15s;
+  flex-shrink:   0;
+}
+
+.dh-settings-config .remove-btn:hover {
+  background: rgba(200, 80, 80, 0.22);
+}
+
+/* Footer */
+.dh-settings-config .config-footer {
+  display:         flex;
+  justify-content: flex-end;
+  gap:             0.5em;
+  padding-top:     0.5em;
+  border-top:      1px solid rgba(255, 255, 255, 0.1);
+}
+
+.dh-settings-config .save-btn {
+  padding:       0.3em 1.1em;
+  border:        1px solid rgba(201, 170, 113, 0.6);
+  border-radius: 3px;
+  background:    rgba(201, 170, 113, 0.18);
+  color:         #c9aa71;
+  font-weight:   700;
+  font-size:     0.9em;
+  cursor:        pointer;
+  transition:    background 0.15s;
+}
+
+.dh-settings-config .save-btn:hover {
+  background: rgba(201, 170, 113, 0.32);
+}
+
+.dh-settings-config .cancel-btn {
+  padding:       0.3em 1.1em;
+  border:        1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 3px;
+  background:    rgba(255, 255, 255, 0.06);
+  color:         #aaa;
+  font-size:     0.9em;
+  cursor:        pointer;
+  transition:    background 0.15s;
+}
+
+.dh-settings-config .cancel-btn:hover {
+  background: rgba(255, 255, 255, 0.12);
+}
