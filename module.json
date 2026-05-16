@@ -1,0 +1,41 @@
+{
+  "id": "daggerheart-languages",
+  "title": "Daggerheart Languages",
+  "description": "Adds a purely informational language system to the Daggerheart system. GMs define language categories, costs, and acquisition requirements; players acquire languages on their character sheets.",
+  "version": "1.0.0",
+  "authors": [
+    {
+      "name": "remito"
+    }
+  ],
+  "compatibility": {
+    "minimum": "14",
+    "verified": "14"
+  },
+  "relationships": {
+    "systems": [
+      {
+        "id": "daggerheart",
+        "type": "system",
+        "compatibility": {
+          "minimum": "2.2",
+          "verified": "2.2"
+        }
+      }
+    ]
+  },
+  "esmodules": [
+    "daggerheart-languages.mjs"
+  ],
+  "styles": [
+    "styles/daggerheart-languages.css"
+  ],
+  "languages": [
+    {
+      "lang": "en",
+      "name": "English",
+      "path": "lang/en.json"
+    }
+  ],
+  "flags": {}
+}
