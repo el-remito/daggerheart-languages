@@ -86,7 +86,9 @@ export class LanguageDialog extends foundry.applications.api.HandlebarsApplicati
             return entry ? `${entry.language.name} (${c.discountAmount ?? 0})` : null;
           })
           .filter(Boolean);
-        const relatedTooltip = cousinsInfo.length > 0 ? cousinsInfo.join('<br>') : null;
+        const relatedTooltip = cousinsInfo.length > 0
+          ? `<strong>${game.i18n.localize('DHLANG.Dialog.relatedLanguages')}</strong><br>${cousinsInfo.join('<br>')}`
+          : null;
 
         let discountTooltip = null;
         if (cousinApplied) {
