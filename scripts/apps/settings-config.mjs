@@ -13,6 +13,7 @@ const MOCK_ACTOR = {
     },
     level:       1,
     proficiency: 1,
+    tier:        1,
   }),
 };
 
@@ -237,14 +238,14 @@ export class LanguageSettingsConfig extends foundry.applications.api.HandlebarsA
       });
     }
 
-    for (const input of el.querySelectorAll('[data-field="cousinDiscountedCost"]')) {
+    for (const input of el.querySelectorAll('[data-field="cousinDiscountAmount"]')) {
       input.addEventListener('input', e => {
         const cousin = this._findCousin(
           e.currentTarget.dataset.categoryId,
           e.currentTarget.dataset.languageId,
           Number(e.currentTarget.dataset.cousinIndex),
         );
-        if (cousin) cousin.discountedCost = e.target.value;
+        if (cousin) cousin.discountAmount = e.target.value;
       });
     }
 
@@ -259,11 +260,104 @@ export class LanguageSettingsConfig extends foundry.applications.api.HandlebarsA
       });
     }
 
+    // Search bar — filters config-language blocks and hides empty categories in real time.
+    // Matches against: language name, language description, category name, category description.
+    // If the category name/description matches, all its languages are shown.
+    const searchInput = el.querySelector('.dh-lang-search');
+    if (searchInput) {
+      searchInput.addEventListener('input', () => {
+        const query = searchInput.value.trim().toLowerCase();
+        for (const category of el.querySelectorAll('.config-category')) {
+          const catName = category.querySelector('[data-field="categoryName"]')?.value.toLowerCase() ?? '';
+          const catDesc = category.querySelector('[data-field="categoryDescription"]')?.value.toLowerCase() ?? '';
+          const categoryMatches = !query || catName.includes(query) || catDesc.includes(query);
+
+          let anyVisible = false;
+          for (const langEl of category.querySelectorAll('.config-language')) {
+            const name = langEl.querySelector('[data-field="languageName"]')?.value.toLowerCase() ?? '';
+            const desc = langEl.querySelector('[data-field="languageDescription"]')?.value.toLowerCase() ?? '';
+            const match = categoryMatches || name.includes(query) || desc.includes(query);
+            langEl.hidden = !match;
+            if (match) anyVisible = true;
+          }
+          // If category name/description matches, show the whole category regardless.
+          // Otherwise hide it only if it has languages and none matched.
+          const hasLanguages = category.querySelectorAll('.config-language').length > 0;
+          category.hidden = !categoryMatches && hasLanguages && !anyVisible;
+        }
+      });
+    }
+
     el.querySelector('[data-action="saveConfig"]')
       ?.addEventListener('click', () => this._onSave());
 
     el.querySelector('[data-action="cancelConfig"]')
       ?.addEventListener('click', () => this.close());
+
+    // ── Formula picker wiring ─────────────────────────────────────────────
+    for (const wrapper of el.querySelectorAll('.requirement-group')) {
+      const reqInput    = wrapper.querySelector('input[data-field]');
+      const toggleBtn   = wrapper.querySelector('.picker-toggle-btn');
+      const pickerPanel = wrapper.querySelector('.formula-picker');
+      const typeSelect  = wrapper.querySelector('.picker-type-select');
+      const applyBtn    = wrapper.querySelector('.picker-apply-btn');
+
+      // Show/hide the correct sub-field block for the selected type.
+      const syncSubFields = () => {
+        const type = typeSelect.value;
+        for (const sub of wrapper.querySelectorAll('.picker-sub')) sub.hidden = true;
+        if (type === 'hasFeature')   wrapper.querySelector('.picker-sub--feature').hidden = false;
+        if (type === 'hasDomain')    wrapper.querySelector('.picker-sub--domain').hidden  = false;
+        if (type === 'traitAtLeast') wrapper.querySelector('.picker-sub--trait').hidden   = false;
+        // 'hasSpellcasting' and 'custom' need no sub-fields.
+      };
+
+      toggleBtn?.addEventListener('click', () => {
+        pickerPanel.hidden = !pickerPanel.hidden;
+        if (!pickerPanel.hidden) syncSubFields(); // ensure correct sub-field visible on open
+      });
+
+      typeSelect?.addEventListener('change', syncSubFields);
+
+      applyBtn?.addEventListener('click', () => {
+        const type = typeSelect.value;
+        let formula = '';
+
+        switch (type) {
+          case 'hasFeature': {
+            const name = wrapper.querySelector('.picker-feature-name')?.value.trim();
+            if (name) formula = `hasFeature:${name}`;
+            break;
+          }
+          case 'hasDomain': {
+            const name = wrapper.querySelector('.picker-domain-name')?.value.trim();
+            if (name) formula = `hasDomain:${name}`;
+            break;
+          }
+          case 'hasSpellcasting':
+            formula = 'hasSpellcasting';
+            break;
+          case 'traitAtLeast': {
+            const trait  = wrapper.querySelector('.picker-trait-select')?.value;
+            const minVal = wrapper.querySelector('.picker-min-value')?.value;
+            if (trait && minVal) formula = `traitAtLeast:${trait}:${minVal}`;
+            break;
+          }
+          case 'custom':
+          default:
+            // Nothing to insert; just close.
+            pickerPanel.hidden = true;
+            return;
+        }
+
+        if (formula && reqInput) {
+          reqInput.value = formula;
+          // Fire the existing sync listener so #config is updated immediately.
+          reqInput.dispatchEvent(new Event('input', { bubbles: true }));
+        }
+        pickerPanel.hidden = true;
+      });
+    }
 
     // Restore collapse state: any <details> whose ID was in the closed set before
     // the re-render should have its open attribute removed again.
@@ -342,7 +436,7 @@ export class LanguageSettingsConfig extends foundry.applications.api.HandlebarsA
   _addCousin(categoryId, languageId) {
     const lang = this._findLanguage(categoryId, languageId);
     if (!lang) return;
-    lang.cousins.push({ languageId: '', discountedCost: 0, waiveRequirement: false });
+    lang.cousins.push({ languageId: '', discountAmount: 0, waiveRequirement: false });
     this.render();
   }
 
@@ -373,6 +467,8 @@ export class LanguageSettingsConfig extends foundry.applications.api.HandlebarsA
 
   async _validate() {
     const errors = [];
+
+    // ── Roll-formula checker (math expressions only) ──────────────────────
     const check = async (formula, label) => {
       if (!formula && formula !== 0) return null;
       try {
@@ -383,17 +479,53 @@ export class LanguageSettingsConfig extends foundry.applications.api.HandlebarsA
       }
     };
 
+    // ── Keyword-requirement syntax checker ────────────────────────────────
+    // Keyword requirements are never passed to Roll — we validate syntax only.
+    const VALID_TRAITS = ['agility', 'strength', 'finesse', 'instinct', 'presence', 'knowledge'];
+    const checkRequirement = async (requirement, label) => {
+      if (!requirement) return;
+      const req = requirement.trim();
+
+      if (req.startsWith('hasFeature:')) {
+        const value = req.slice('hasFeature:'.length).trim();
+        if (!value) errors.push(game.i18n.format('DHLANG.Settings.validationError', { error: `${label}: hasFeature requires a feature name (e.g. hasFeature:Spellcasting)` }));
+        return;
+      }
+      if (req.startsWith('hasDomain:')) {
+        const value = req.slice('hasDomain:'.length).trim();
+        if (!value) errors.push(game.i18n.format('DHLANG.Settings.validationError', { error: `${label}: hasDomain requires a domain name (e.g. hasDomain:Divine)` }));
+        return;
+      }
+      if (req === 'hasSpellcasting') return; // always valid
+      if (req.startsWith('traitAtLeast:')) {
+        const parts = req.slice('traitAtLeast:'.length).split(':');
+        const trait = parts[0]?.toLowerCase();
+        const minVal = Number(parts[1]);
+        if (parts.length < 2 || !VALID_TRAITS.includes(trait) || isNaN(minVal)) {
+          errors.push(game.i18n.format('DHLANG.Settings.validationError', {
+            error: `${label}: traitAtLeast format is traitAtLeast:<trait>:<number> with trait one of: ${VALID_TRAITS.join(', ')}`,
+          }));
+        }
+        return;
+      }
+
+      // Standard Roll formula fallback
+      await check(requirement, label);
+    };
+
+    // ── Validate point formula ────────────────────────────────────────────
     const pointTotal = await check(this.#config.pointFormula, 'Point Formula');
     if (pointTotal !== null && pointTotal <= 0) {
       errors.push(game.i18n.format('DHLANG.Settings.validationError', { error: 'Point Formula must resolve to a positive integer' }));
     }
 
+    // ── Validate categories, languages, cousins ───────────────────────────
     for (const cat of (this.#config.categories ?? [])) {
       const catCost = await check(cat.cost, `Category "${cat.name}" cost`);
       if (catCost !== null && catCost < 0) {
         errors.push(game.i18n.format('DHLANG.Settings.validationError', { error: `Category "${cat.name}" cost must be non-negative` }));
       }
-      if (cat.requirement) await check(cat.requirement, `Category "${cat.name}" requirement`);
+      if (cat.requirement) await checkRequirement(cat.requirement, `Category "${cat.name}" requirement`);
 
       for (const lang of (cat.languages ?? [])) {
         if (lang.cost !== null && lang.cost !== '') {
@@ -402,12 +534,12 @@ export class LanguageSettingsConfig extends foundry.applications.api.HandlebarsA
             errors.push(game.i18n.format('DHLANG.Settings.validationError', { error: `Language "${lang.name}" cost must be non-negative` }));
           }
         }
-        if (lang.requirement) await check(lang.requirement, `Language "${lang.name}" requirement`);
+        if (lang.requirement) await checkRequirement(lang.requirement, `Language "${lang.name}" requirement`);
 
         for (const cousin of (lang.cousins ?? [])) {
-          const dc = await check(cousin.discountedCost, `Cousin discounted cost in "${lang.name}"`);
-          if (dc !== null && dc < 0) {
-            errors.push(game.i18n.format('DHLANG.Settings.validationError', { error: `Cousin discounted cost in "${lang.name}" must be non-negative` }));
+          const da = await check(cousin.discountAmount, `Cousin discount amount in "${lang.name}"`);
+          if (da !== null && da < 0) {
+            errors.push(game.i18n.format('DHLANG.Settings.validationError', { error: `Cousin discount amount in "${lang.name}" must be non-negative` }));
           }
         }
       }

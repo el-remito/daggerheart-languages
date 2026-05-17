@@ -1,7 +1,8 @@
 import { MODULE_ID, FLAGS, SETTINGS, TEMPLATES } from '../constants.mjs';
-import { evaluateRequirement } from '../utils/formula.mjs';
+import { evaluateRequirement, formatRequirement } from '../utils/formula.mjs';
 import {
   getAcquiredLanguageIds,
+  findLanguage,
   resolveLanguageCost,
   resolveEffectiveRequirement,
   calculatePointPool,
@@ -21,9 +22,30 @@ export class LanguageDialog extends foundry.applications.api.HandlebarsApplicati
     main: { template: TEMPLATES.LANGUAGE_DIALOG },
   };
 
+  // Collapse state — persisted across re-renders so user-closed categories stay closed.
+  #collapsedCategories = new Set();
+
   constructor(options = {}) {
     super(options);
     this.actor = options.actor;
+  }
+
+  /** Snapshot which category <details> are currently closed before a re-render wipes the DOM. */
+  _captureCollapseState() {
+    if (!this.element) return;
+    this.#collapsedCategories = new Set();
+    for (const d of this.element.querySelectorAll('.lang-category')) {
+      if (!d.open) {
+        const id = d.dataset.categoryId;
+        if (id) this.#collapsedCategories.add(id);
+      }
+    }
+  }
+
+  /** Override render to capture collapse state before the DOM is replaced. */
+  render(options) {
+    this._captureCollapseState();
+    return super.render(options);
   }
 
   get title() {
@@ -58,12 +80,22 @@ export class LanguageDialog extends foundry.applications.api.HandlebarsApplicati
         const requirementFormula = resolveEffectiveRequirement(language, category, requirementWaived);
         const requirementMet = await evaluateRequirement(requirementFormula, this.actor);
 
+        let discountTooltip = null;
+        if (cousinApplied) {
+          const cousinEntry = findLanguage(cousinApplied.languageId, config);
+          const cousinName = cousinEntry ? cousinEntry.language.name : cousinApplied.languageId;
+          discountTooltip = game.i18n.format('DHLANG.Dialog.discountReason', {
+            name: this.actor.name,
+            cousin: cousinName,
+          });
+        }
+
         const canAfford = isPC ? (pool.remaining >= effectiveCost) : true;
         // Adversaries: cost and requirements are display-only, never enforced.
         const canAcquire = !alreadyAcquired && (isPC ? (canAfford && requirementMet) : true);
 
         const requirementTooltip = (!requirementMet && requirementFormula)
-          ? game.i18n.format('DHLANG.Dialog.requirementUnmet', { requirement: requirementFormula })
+          ? game.i18n.format('DHLANG.Dialog.requirementUnmet', { requirement: formatRequirement(requirementFormula) })
           : '';
 
         languages.push({
@@ -79,9 +111,20 @@ export class LanguageDialog extends foundry.applications.api.HandlebarsApplicati
           alreadyAcquired,
           canAcquire,
           canAfford,
+          discountTooltip,
         });
       }
-      if (languages.length > 0) categories.push({ id: category.id, name: category.name, description: category.description ?? null, languages });
+      if (languages.length > 0) {
+        const acquiredCount = languages.filter(l => l.alreadyAcquired).length;
+        categories.push({
+          id:           category.id,
+          name:         category.name,
+          description:  category.description ?? null,
+          acquiredCount,
+          totalCount:   languages.length,
+          languages,
+        });
+      }
     }
 
     const acquiredLanguages = acquiredIds.map(id => {
@@ -93,13 +136,14 @@ export class LanguageDialog extends foundry.applications.api.HandlebarsApplicati
     });
 
     return {
-      actor:      this.actor,
+      actor:        this.actor,
       isPC,
       isGM,
       pool,
+      pointFormula: config.pointFormula ?? '2',
       categories,
       acquiredLanguages,
-      isAdversary: this.actor.type === 'adversary',
+      isAdversary:  this.actor.type === 'adversary',
     };
   }
 
@@ -111,6 +155,37 @@ export class LanguageDialog extends foundry.applications.api.HandlebarsApplicati
     // Remove buttons (GM only)
     for (const btn of this.element.querySelectorAll('[data-action="removeLanguage"]')) {
       btn.addEventListener('click', this._onRemoveLanguage.bind(this));
+    }
+
+    // Restore collapse state: any category that was closed before the re-render stays closed.
+    for (const d of this.element.querySelectorAll('.lang-category')) {
+      const id = d.dataset.categoryId;
+      if (id && this.#collapsedCategories.has(id)) d.removeAttribute('open');
+    }
+
+    // Search bar — filters language rows and hides empty categories in real time.
+    // Matches against: language name, language description, category name, category description.
+    // If the category name/description matches, all its languages are shown.
+    const searchInput = this.element.querySelector('.dh-lang-search');
+    if (searchInput) {
+      searchInput.addEventListener('input', () => {
+        const query = searchInput.value.trim().toLowerCase();
+        for (const category of this.element.querySelectorAll('.lang-category')) {
+          const catName = category.querySelector('.lang-category-title')?.textContent.toLowerCase() ?? '';
+          const catDesc = category.querySelector('.lang-category-description')?.textContent.toLowerCase() ?? '';
+          const categoryMatches = !query || catName.includes(query) || catDesc.includes(query);
+
+          let anyVisible = false;
+          for (const row of category.querySelectorAll('.lang-row')) {
+            const name = row.querySelector('.lang-name')?.textContent.toLowerCase() ?? '';
+            const desc = row.querySelector('.lang-description')?.textContent.toLowerCase() ?? '';
+            const match = categoryMatches || name.includes(query) || desc.includes(query);
+            row.hidden = !match;
+            if (match) anyVisible = true;
+          }
+          category.hidden = !anyVisible && !categoryMatches;
+        }
+      });
     }
   }
 

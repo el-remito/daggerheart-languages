@@ -3,7 +3,10 @@
   {{!-- Point pool (PC only) --}}
   {{#if isPC}}
   <div class="point-bar">
-    <span class="point-label">{{localize "DHLANG.Dialog.points"}}</span>
+    <span class="point-label">
+      {{localize "DHLANG.Dialog.points"}}
+      <span class="point-formula-info" data-tooltip="{{pointFormula}}">ⓘ</span>
+    </span>
     <div class="point-track">
       <div class="point-fill {{#if pool.overspent}}overspent{{/if}}" style="width: {{pool.percent}}%"></div>
     </div>
@@ -16,17 +19,46 @@
   <p class="adversary-note">{{localize "DHLANG.Dialog.adversaryFreeNote"}}</p>
   {{/if}}
 
+  {{!-- Search bar --}}
+  <div class="dh-lang-search-bar">
+    <input type="search" class="dh-lang-search" placeholder="{{localize 'DHLANG.Search.placeholder'}}" />
+  </div>
+
+  {{!-- Acquired languages --}}
+  {{#if acquiredLanguages.length}}
+  <div class="acquired-section">
+    <h3>{{localize "DHLANG.Dialog.acquired"}}</h3>
+    {{#each acquiredLanguages}}
+    <div class="acquired-row">
+      <span class="lang-name">{{this.name}}</span>
+      {{#if ../isGM}}
+      <button
+        type="button"
+        data-action="removeLanguage"
+        data-language-id="{{this.id}}"
+        class="remove-btn"
+      >{{localize "DHLANG.Dialog.remove"}}</button>
+      {{/if}}
+    </div>
+    {{/each}}
+  </div>
+  {{/if}}
+
   {{!-- Available languages by category --}}
   {{#each categories}}
-  <details class="lang-category" open>
-    <summary class="lang-category-name">{{this.name}}</summary>
-    {{#if this.description}}<p class="lang-category-description">{{this.description}}</p>{{/if}}
+  <details class="lang-category" data-category-id="{{this.id}}" open>
+    <summary class="lang-category-name">
+      <span class="lang-category-title">{{this.name}}</span>
+      <span class="category-count">({{this.acquiredCount}} / {{this.totalCount}})</span>
+      {{#if this.description}}<p class="lang-category-description">{{this.description}}</p>{{/if}}
+    </summary>
     {{#each this.languages}}
     <div class="lang-row {{#unless this.canAfford}}unaffordable{{/unless}} {{#unless this.requirementMet}}unmet-requirement{{/unless}}">
       <span class="lang-name">{{this.name}}</span>
       {{#if this.description}}<p class="lang-description">{{this.description}}</p>{{/if}}
       <div class="lang-actions">
-        <span class="lang-cost">
+        {{#if this.discountTooltip}}<span class="discount-info{{#if this.alreadyAcquired}} is-acquired{{/if}}" data-tooltip="{{this.discountTooltip}}">ⓘ</span>{{/if}}
+        <span class="lang-cost{{#if this.alreadyAcquired}} is-acquired{{/if}}">
           {{localize "DHLANG.Dialog.cost"}}:
           {{#if this.hasDiscount}}
             <del>{{this.originalCost}}</del> → {{this.effectiveCost}}
@@ -52,25 +84,5 @@
   {{else}}
   <p class="no-languages-hint">{{localize "DHLANG.Dialog.noLanguagesConfigured"}}</p>
   {{/each}}
-
-  {{!-- Acquired languages --}}
-  {{#if acquiredLanguages.length}}
-  <div class="acquired-section">
-    <h3>{{localize "DHLANG.Dialog.acquired"}}</h3>
-    {{#each acquiredLanguages}}
-    <div class="acquired-row">
-      <span class="lang-name">{{this.name}}</span>
-      {{#if ../isGM}}
-      <button
-        type="button"
-        data-action="removeLanguage"
-        data-language-id="{{this.id}}"
-        class="remove-btn"
-      >{{localize "DHLANG.Dialog.remove"}}</button>
-      {{/if}}
-    </div>
-    {{/each}}
-  </div>
-  {{/if}}
 
 </div>
