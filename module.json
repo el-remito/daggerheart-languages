@@ -37,5 +37,7 @@
       "path": "lang/en.json"
     }
   ],
-  "flags": {}
+  "flags": {},
+  "manifest": "https://raw.githubusercontent.com/el-remito/daggerheart-languages/main/module.json",
+  "download": "https://github.com/el-remito/daggerheart-languages/archive/refs/heads/main.zip"
 }
