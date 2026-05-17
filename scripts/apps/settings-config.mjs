@@ -33,6 +33,35 @@ export class LanguageSettingsConfig extends foundry.applications.api.HandlebarsA
   // Working copy of config — mutations happen here, not in game.settings until Save.
   #config = null;
 
+  // Collapse state — persisted across re-renders so user-closed <details> stay closed.
+  #collapsedCategories = new Set();
+  #collapsedLanguages  = new Set();
+
+  /** Snapshot which <details> elements are currently closed before a re-render wipes the DOM. */
+  _captureCollapseState() {
+    if (!this.element) return;
+    this.#collapsedCategories = new Set();
+    this.#collapsedLanguages  = new Set();
+    for (const d of this.element.querySelectorAll('.config-category')) {
+      if (!d.open) {
+        const id = d.querySelector('[data-category-id]')?.dataset.categoryId;
+        if (id) this.#collapsedCategories.add(id);
+      }
+    }
+    for (const d of this.element.querySelectorAll('.config-language')) {
+      if (!d.open) {
+        const id = d.querySelector('[data-language-id]')?.dataset.languageId;
+        if (id) this.#collapsedLanguages.add(id);
+      }
+    }
+  }
+
+  /** Override render to capture collapse state before the DOM is replaced. */
+  render(options) {
+    this._captureCollapseState();
+    return super.render(options);
+  }
+
   async _prepareContext(_options) {
     if (!this.#config) {
       const saved = game.settings.get(MODULE_ID, SETTINGS.CONFIG);
@@ -235,6 +264,17 @@ export class LanguageSettingsConfig extends foundry.applications.api.HandlebarsA
 
     el.querySelector('[data-action="cancelConfig"]')
       ?.addEventListener('click', () => this.close());
+
+    // Restore collapse state: any <details> whose ID was in the closed set before
+    // the re-render should have its open attribute removed again.
+    for (const d of el.querySelectorAll('.config-category')) {
+      const id = d.querySelector('[data-category-id]')?.dataset.categoryId;
+      if (id && this.#collapsedCategories.has(id)) d.removeAttribute('open');
+    }
+    for (const d of el.querySelectorAll('.config-language')) {
+      const id = d.querySelector('[data-language-id]')?.dataset.languageId;
+      if (id && this.#collapsedLanguages.has(id)) d.removeAttribute('open');
+    }
   }
 
   // ── Mutation helpers ──────────────────────────────────────────────────────
