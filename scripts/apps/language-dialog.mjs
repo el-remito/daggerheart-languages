@@ -21,9 +21,30 @@ export class LanguageDialog extends foundry.applications.api.HandlebarsApplicati
     main: { template: TEMPLATES.LANGUAGE_DIALOG },
   };
 
+  // Collapse state — persisted across re-renders so user-closed categories stay closed.
+  #collapsedCategories = new Set();
+
   constructor(options = {}) {
     super(options);
     this.actor = options.actor;
+  }
+
+  /** Snapshot which category <details> are currently closed before a re-render wipes the DOM. */
+  _captureCollapseState() {
+    if (!this.element) return;
+    this.#collapsedCategories = new Set();
+    for (const d of this.element.querySelectorAll('.lang-category')) {
+      if (!d.open) {
+        const id = d.dataset.categoryId;
+        if (id) this.#collapsedCategories.add(id);
+      }
+    }
+  }
+
+  /** Override render to capture collapse state before the DOM is replaced. */
+  render(options) {
+    this._captureCollapseState();
+    return super.render(options);
   }
 
   get title() {
@@ -81,7 +102,17 @@ export class LanguageDialog extends foundry.applications.api.HandlebarsApplicati
           canAfford,
         });
       }
-      if (languages.length > 0) categories.push({ id: category.id, name: category.name, description: category.description ?? null, languages });
+      if (languages.length > 0) {
+        const acquiredCount = languages.filter(l => l.alreadyAcquired).length;
+        categories.push({
+          id:           category.id,
+          name:         category.name,
+          description:  category.description ?? null,
+          acquiredCount,
+          totalCount:   languages.length,
+          languages,
+        });
+      }
     }
 
     const acquiredLanguages = acquiredIds.map(id => {
@@ -111,6 +142,12 @@ export class LanguageDialog extends foundry.applications.api.HandlebarsApplicati
     // Remove buttons (GM only)
     for (const btn of this.element.querySelectorAll('[data-action="removeLanguage"]')) {
       btn.addEventListener('click', this._onRemoveLanguage.bind(this));
+    }
+
+    // Restore collapse state: any category that was closed before the re-render stays closed.
+    for (const d of this.element.querySelectorAll('.lang-category')) {
+      const id = d.dataset.categoryId;
+      if (id && this.#collapsedCategories.has(id)) d.removeAttribute('open');
     }
   }
 

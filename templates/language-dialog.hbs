@@ -38,9 +38,12 @@
 
   {{!-- Available languages by category --}}
   {{#each categories}}
-  <details class="lang-category" open>
-    <summary class="lang-category-name">{{this.name}}</summary>
-    {{#if this.description}}<p class="lang-category-description">{{this.description}}</p>{{/if}}
+  <details class="lang-category" data-category-id="{{this.id}}" open>
+    <summary class="lang-category-name">
+      <span class="lang-category-title">{{this.name}}</span>
+      <span class="category-count">({{this.acquiredCount}} / {{this.totalCount}})</span>
+      {{#if this.description}}<p class="lang-category-description">{{this.description}}</p>{{/if}}
+    </summary>
     {{#each this.languages}}
     <div class="lang-row {{#unless this.canAfford}}unaffordable{{/unless}} {{#unless this.requirementMet}}unmet-requirement{{/unless}}">
       <span class="lang-name">{{this.name}}</span>

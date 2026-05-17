@@ -125,25 +125,54 @@
   background:  rgba(255, 255, 255, 0.04);
   list-style:  none;
   display:     flex;
-  align-items: center;
-  gap:         0.4em;
+  flex-wrap:   wrap;
+  align-items: baseline;
+  gap:         0 0.4em;
 }
 
 .dh-languages-dialog .lang-category-name::before {
   content:     "▶";
   font-size:   0.6em;
   transition:  transform 0.15s;
+  align-self:  center;
 }
 
 .dh-languages-dialog .lang-category[open] .lang-category-name::before {
   transform: rotate(90deg);
 }
 
-.dh-languages-dialog .lang-category-description {
-  font-style: italic;
-  color:      #aaa;
-  font-size:  0.82em;
-  margin:     0.2em 0.8em 0.4em;
+/* Title text — grows to fill available space next to the counter */
+.dh-languages-dialog .lang-category-name .lang-category-title {
+  flex: 1;
+}
+
+/* (X / Y) acquired counter */
+.dh-languages-dialog .lang-category-name .category-count {
+  font-size:   0.8em;
+  font-weight: 400;
+  color:       #999;
+  flex-shrink: 0;
+}
+
+/* Description inside <summary> — drops to its own full-width line */
+.dh-languages-dialog .lang-category-name .lang-category-description {
+  flex-basis:     100%;
+  font-style:     italic;
+  color:          #888;
+  font-size:      0.82em;
+  font-weight:    400;
+  margin:         0.15em 0 0.1em 1.2em;
+  pointer-events: none;
+  line-height:    1.3;
+}
+
+/* Suppress any system-injected "Description" label via pseudo-elements */
+.dh-languages-dialog .lang-category-description::before,
+.dh-languages-dialog .lang-category-description::after,
+.dh-languages-dialog .lang-description::before,
+.dh-languages-dialog .lang-description::after {
+  display: none !important;
+  content: none !important;
 }
 
 .dh-languages-dialog .lang-category-description::before {
