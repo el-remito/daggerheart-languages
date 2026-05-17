@@ -76,8 +76,8 @@
           <div class="cousin-row">
             <select data-field="cousinLanguageId" data-category-id="{{../../id}}" data-language-id="{{../id}}" data-cousin-index="{{@index}}">
               <option value="">— {{localize "DHLANG.Settings.cousinLanguage"}} —</option>
-              {{#each ../_cousinOptions}}
-              <option value="{{this.id}}" {{#if (eq this.id ../../languageId)}}selected{{/if}}>{{this.name}}</option>
+              {{#each this._options}}
+              <option value="{{this.id}}" {{#if this.selected}}selected{{/if}}>{{this.name}}</option>
               {{/each}}
             </select>
             <label class="cousin-cost">

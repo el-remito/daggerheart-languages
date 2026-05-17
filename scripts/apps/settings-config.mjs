@@ -39,6 +39,13 @@ export class LanguageSettingsConfig extends foundry.applications.api.HandlebarsA
       this.#config = foundry.utils.deepClone(saved);
     }
 
+    // Sort categories and their languages alphabetically for display.
+    // this.#config is a deepClone of saved settings so in-place sort is safe.
+    this.#config.categories.sort((a, b) => a.name.localeCompare(b.name));
+    for (const cat of this.#config.categories) {
+      cat.languages.sort((a, b) => a.name.localeCompare(b.name));
+    }
+
     // Build flat list of all languages for cousin dropdowns (keyed by language ID for self-exclusion).
     const allLanguages = [];
     for (const cat of (this.#config.categories ?? [])) {
@@ -47,10 +54,43 @@ export class LanguageSettingsConfig extends foundry.applications.api.HandlebarsA
       }
     }
 
-    // Per-language cousin options: exclude the language itself so it can't be its own cousin.
+    // Sort flat language list so cousin dropdowns appear alphabetically.
+    allLanguages.sort((a, b) => a.name.localeCompare(b.name));
+
+    // Sort each language's cousin entries by the name of their linked language, then build options.
+    for (const cat of this.#config.categories) {
+      for (const lang of cat.languages) {
+        (lang.cousins ?? []).sort((a, b) => {
+          const nameA = allLanguages.find(l => l.id === a.languageId)?.name ?? '';
+          const nameB = allLanguages.find(l => l.id === b.languageId)?.name ?? '';
+          return nameA.localeCompare(nameB);
+        });
+      }
+    }
+
+    // Per-cousin options: exclude the language itself, exclude languages already claimed
+    // by OTHER cousin slots on the same language, and pre-compute selected state.
+    // This avoids relying on the {{eq}} Handlebars helper which may not be registered.
     for (const cat of (this.#config.categories ?? [])) {
       for (const lang of (cat.languages ?? [])) {
-        lang._cousinOptions = allLanguages.filter(l => l.id !== lang.id);
+        const baseOptions = allLanguages.filter(l => l.id !== lang.id);
+        const cousins = lang.cousins ?? [];
+        cousins.forEach((cousin, idx) => {
+          // IDs already claimed by every OTHER cousin slot (ignore empty "" values)
+          const otherUsedIds = new Set(
+            cousins
+              .filter((_, i) => i !== idx)
+              .map(c => c.languageId)
+              .filter(Boolean)
+          );
+          cousin._options = baseOptions
+            .filter(l => !otherUsedIds.has(l.id))
+            .map(l => ({
+              id:       l.id,
+              name:     l.name,
+              selected: l.id === cousin.languageId,
+            }));
+        });
       }
     }
 

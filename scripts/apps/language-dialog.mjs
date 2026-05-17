@@ -41,11 +41,17 @@ export class LanguageDialog extends foundry.applications.api.HandlebarsApplicati
     const isGM = game.user.isGM;
 
     const pool = isPC ? await calculatePointPool(this.actor, config) : null;
+    if (pool) {
+      pool.percent   = pool.total > 0 ? Math.min(100, Math.round((pool.spent / pool.total) * 100)) : 0;
+      pool.overspent = pool.spent > pool.total;
+    }
 
     const categories = [];
-    for (const category of (config.categories ?? [])) {
+    const sortedCategories = [...(config.categories ?? [])].sort((a, b) => a.name.localeCompare(b.name));
+    for (const category of sortedCategories) {
       const languages = [];
-      for (const language of (category.languages ?? [])) {
+      const sortedLanguages = [...(category.languages ?? [])].sort((a, b) => a.name.localeCompare(b.name));
+      for (const language of sortedLanguages) {
         const alreadyAcquired = acquiredIds.includes(language.id);
         const { effectiveCost, originalCost, cousinApplied, requirementWaived } =
           await resolveLanguageCost(language, category, this.actor);

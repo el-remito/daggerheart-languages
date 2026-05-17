@@ -4,6 +4,9 @@
   {{#if isPC}}
   <div class="point-bar">
     <span class="point-label">{{localize "DHLANG.Dialog.points"}}</span>
+    <div class="point-track">
+      <div class="point-fill {{#if pool.overspent}}overspent{{/if}}" style="width: {{pool.percent}}%"></div>
+    </div>
     <span class="point-values">{{pool.spent}} / {{pool.total}}</span>
   </div>
   {{/if}}

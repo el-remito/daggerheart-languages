@@ -38,14 +38,14 @@
 
 /* Point bar */
 .dh-languages-dialog .point-bar {
-  display:         flex;
-  align-items:     center;
-  gap:             0.6em;
-  padding:         0.4em 0.6em;
-  background:      rgba(255, 255, 255, 0.05);
-  border:          1px solid rgba(201, 170, 113, 0.3);
-  border-radius:   4px;
-  font-size:       0.9em;
+  display:       flex;
+  align-items:   center;
+  gap:           0.6em;
+  padding:       0.4em 0.6em;
+  background:    rgba(255, 255, 255, 0.05);
+  border:        1px solid rgba(201, 170, 113, 0.3);
+  border-radius: 4px;
+  font-size:     0.9em;
 }
 
 .dh-languages-dialog .point-label {
@@ -54,8 +54,31 @@
   flex-shrink: 0;
 }
 
+.dh-languages-dialog .point-track {
+  flex:          1;
+  height:        8px;
+  background:    rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+  overflow:      hidden;
+  min-width:     40px;
+}
+
+.dh-languages-dialog .point-fill {
+  height:        100%;
+  background:    #c9aa71;
+  border-radius: 4px;
+  transition:    width 0.3s ease;
+  max-width:     100%;
+}
+
+.dh-languages-dialog .point-fill.overspent {
+  background: #c96060;
+}
+
 .dh-languages-dialog .point-values {
-  color: #ddd;
+  color:       #ddd;
+  flex-shrink: 0;
+  white-space: nowrap;
 }
 
 /* Adversary note */
@@ -466,13 +489,26 @@
 }
 
 .dh-settings-config .cousin-row select {
-  flex:          1 1 auto;
-  background:    rgba(255, 255, 255, 0.06);
-  border:        1px solid rgba(255, 255, 255, 0.15);
-  border-radius: 3px;
-  padding:       0.25em 0.4em;
-  color:         #eee;
-  font-size:     0.82em;
+  flex:               1 1 auto;
+  appearance:         none;
+  -webkit-appearance: none;
+  background:         #1e1a27;
+  border:             1px solid rgba(255, 255, 255, 0.2);
+  border-radius:      3px;
+  padding:            0.25em 0.6em 0.25em 0.4em;
+  color:              #eee;
+  font-size:          0.82em;
+  cursor:             pointer;
+}
+
+.dh-settings-config .cousin-row select option {
+  background: #1e1a27;
+  color:      #eee;
+}
+
+.dh-settings-config .cousin-row select option:checked {
+  background: rgba(201, 170, 113, 0.3);
+  color:      #c9aa71;
 }
 
 .dh-settings-config .cousin-cost {
