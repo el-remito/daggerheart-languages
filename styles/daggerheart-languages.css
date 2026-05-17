@@ -25,6 +25,26 @@
   pointer-events: none;
 }
 
+@keyframes dh-badge-pulse-unspent {
+  0%, 100% { box-shadow: 0 0 4px 1px rgba(201, 170, 113, 0.45); }
+  50%       { box-shadow: 0 0 10px 4px rgba(201, 170, 113, 0.9); }
+}
+
+@keyframes dh-badge-pulse-overspent {
+  0%, 100% { box-shadow: 0 0 4px 1px rgba(200, 70, 70, 0.45); }
+  50%       { box-shadow: 0 0 10px 4px rgba(200, 70, 70, 0.9); }
+}
+
+.dh-lang-badge--unspent {
+  color:     #e8cc90;
+  animation: dh-badge-pulse-unspent 2.5s ease-in-out infinite;
+}
+
+.dh-lang-badge--overspent {
+  color:     #e06060;
+  animation: dh-badge-pulse-overspent 2.5s ease-in-out infinite;
+}
+
 /* ── Language Dialog ────────────────────────────────────────────────────── */
 
 .dh-languages-dialog {

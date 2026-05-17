@@ -1,5 +1,5 @@
 import { MODULE_ID, FLAGS, SETTINGS } from '../constants.mjs';
-import { getAcquiredLanguageIds, findLanguage } from '../utils/languages.mjs';
+import { getAcquiredLanguageIds, findLanguage, calculatePointPool } from '../utils/languages.mjs';
 
 /**
  * Finds a language name by ID within the world config.
@@ -29,7 +29,7 @@ async function openLanguageDialog(actor) {
  * @param {HTMLElement} html
  * @param {Actor} actor
  */
-export function injectLanguageBadge(app, html, actor) {
+export async function injectLanguageBadge(app, html, actor) {
   const nameRow = html.querySelector('.name-row');
   if (!nameRow) return;
 
@@ -59,4 +59,16 @@ export function injectLanguageBadge(app, html, actor) {
   }
 
   nameRow.querySelector('h1.actor-name').insertAdjacentElement('afterend', badge);
+
+  // For PCs: evaluate the point pool and apply a glow class if points are unspent or overspent.
+  // The badge is already in the DOM; the class is added async after pool evaluation completes.
+  if (isPC) {
+    try {
+      const pool = await calculatePointPool(actor, config);
+      if (pool.spent > pool.total)  badge.classList.add('dh-lang-badge--overspent');
+      else if (pool.remaining > 0)  badge.classList.add('dh-lang-badge--unspent');
+    } catch (_e) {
+      // Formula evaluation failed — display badge without a state class.
+    }
+  }
 }
