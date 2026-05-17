@@ -47,6 +47,9 @@
               <option value="hasDomain">{{localize "DHLANG.Picker.typeHasDomain"}}</option>
               <option value="hasSpellcasting">{{localize "DHLANG.Picker.typeHasSpellcasting"}}</option>
               <option value="traitAtLeast">{{localize "DHLANG.Picker.typeTraitAtLeast"}}</option>
+              <option value="tierAtLeast">{{localize "DHLANG.Picker.typeTierAtLeast"}}</option>
+              <option value="levelAtLeast">{{localize "DHLANG.Picker.typeLevelAtLeast"}}</option>
+              <option value="classIs">{{localize "DHLANG.Picker.typeClassIs"}}</option>
             </select>
             <div class="picker-sub picker-sub--feature" hidden>
               <label>{{localize "DHLANG.Picker.featureName"}}
@@ -71,7 +74,11 @@
                 <input type="number" class="picker-min-value" value="1" min="1" />
               </label>
             </div>
-            <button type="button" class="picker-apply-btn">{{localize "DHLANG.Picker.apply"}}</button>
+            <div class="picker-actions">
+              <button type="button" class="picker-set-btn">{{localize "DHLANG.Picker.set"}}</button>
+              <button type="button" class="picker-and-btn">{{localize "DHLANG.Picker.andOperator"}}</button>
+              <button type="button" class="picker-or-btn">{{localize "DHLANG.Picker.orOperator"}}</button>
+            </div>
           </div>
         </div>
         <label>
@@ -114,6 +121,9 @@
                 <option value="hasDomain">{{localize "DHLANG.Picker.typeHasDomain"}}</option>
                 <option value="hasSpellcasting">{{localize "DHLANG.Picker.typeHasSpellcasting"}}</option>
                 <option value="traitAtLeast">{{localize "DHLANG.Picker.typeTraitAtLeast"}}</option>
+                <option value="tierAtLeast">{{localize "DHLANG.Picker.typeTierAtLeast"}}</option>
+                <option value="levelAtLeast">{{localize "DHLANG.Picker.typeLevelAtLeast"}}</option>
+                <option value="classIs">{{localize "DHLANG.Picker.typeClassIs"}}</option>
               </select>
               <div class="picker-sub picker-sub--feature" hidden>
                 <label>{{localize "DHLANG.Picker.featureName"}}
@@ -138,7 +148,26 @@
                   <input type="number" class="picker-min-value" value="1" min="1" />
                 </label>
               </div>
-              <button type="button" class="picker-apply-btn">{{localize "DHLANG.Picker.apply"}}</button>
+              <div class="picker-sub picker-sub--tier-at-least" hidden>
+                <label class="picker-min-label">{{localize "DHLANG.Picker.minValue"}}
+                  <input type="number" class="picker-tier-min" value="1" min="1" />
+                </label>
+              </div>
+              <div class="picker-sub picker-sub--level-at-least" hidden>
+                <label class="picker-min-label">{{localize "DHLANG.Picker.minValue"}}
+                  <input type="number" class="picker-level-min" value="1" min="1" />
+                </label>
+              </div>
+              <div class="picker-sub picker-sub--class" hidden>
+                <label>{{localize "DHLANG.Picker.className"}}
+                  <input type="text" class="picker-class-name" placeholder="e.g. Warrior" />
+                </label>
+              </div>
+              <div class="picker-actions">
+              <button type="button" class="picker-set-btn">{{localize "DHLANG.Picker.set"}}</button>
+              <button type="button" class="picker-and-btn">{{localize "DHLANG.Picker.andOperator"}}</button>
+              <button type="button" class="picker-or-btn">{{localize "DHLANG.Picker.orOperator"}}</button>
+            </div>
             </div>
           </div>
           <label>

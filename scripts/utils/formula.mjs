@@ -1,15 +1,10 @@
 /**
- * Converts a requirement formula string into a human-readable description.
- * Keyword-based requirements are translated via i18n; plain math formulas
- * are returned unchanged.
- *
- * @param {string|null|undefined} formula
+ * Converts a single requirement atom into a human-readable description.
+ * Does NOT handle compound AND/OR expressions — call formatRequirement for that.
+ * @param {string} req  — already trimmed atom string
  * @returns {string}
  */
-export function formatRequirement(formula) {
-  if (!formula) return formula ?? '';
-  const req = formula.trim();
-
+function _formatAtom(req) {
   if (req.startsWith('hasFeature:')) {
     const value = req.slice('hasFeature:'.length).trim();
     return game.i18n.format('DHLANG.Requirement.hasFeature', { value });
@@ -28,9 +23,44 @@ export function formatRequirement(formula) {
     const value = parts[1] ?? '';
     return game.i18n.format('DHLANG.Requirement.traitAtLeast', { trait, value });
   }
-
+  if (req.startsWith('tierAtLeast:')) {
+    const value = req.slice('tierAtLeast:'.length).trim();
+    return game.i18n.format('DHLANG.Requirement.tierAtLeast', { value });
+  }
+  if (req.startsWith('levelAtLeast:')) {
+    const value = req.slice('levelAtLeast:'.length).trim();
+    return game.i18n.format('DHLANG.Requirement.levelAtLeast', { value });
+  }
+  if (req.startsWith('classIs:')) {
+    const value = req.slice('classIs:'.length).trim();
+    return game.i18n.format('DHLANG.Requirement.classIs', { value });
+  }
   // Plain math formula — return as-is.
-  return formula;
+  return req;
+}
+
+/**
+ * Converts a requirement formula string into a human-readable description.
+ * Supports compound expressions with AND / OR operators.
+ *
+ * @param {string|null|undefined} formula
+ * @returns {string}
+ */
+export function formatRequirement(formula) {
+  if (!formula) return formula ?? '';
+  const req = formula.trim();
+
+  // Split by OR first (lower precedence), then AND within each branch.
+  const orParts = req.split(/ OR /i);
+  if (orParts.length > 1) {
+    return orParts.map(p => formatRequirement(p.trim())).join(' OR ');
+  }
+  const andParts = req.split(/ AND /i);
+  if (andParts.length > 1) {
+    return andParts.map(p => formatRequirement(p.trim())).join(' AND ');
+  }
+
+  return _formatAtom(req);
 }
 
 /**
@@ -52,28 +82,17 @@ export async function evaluateFormula(formula, actor) {
 }
 
 /**
- * Evaluates a requirement expression against an actor.
+ * Evaluates a single requirement atom against an actor.
+ * Does NOT handle compound AND/OR expressions.
  *
- * Supports keyword-based requirements (evaluated directly against actor data)
- * and falls back to Roll formula evaluation for anything else.
+ * Non-PC actors always pass keyword checks.
+ * Keyword evaluation errors fail permissively (return true).
  *
- * Keyword forms:
- *   hasFeature:FeatureName       — actor has a feature item with that name (case-insensitive)
- *   hasDomain:DomainName         — actor belongs to a domain with that label (case-insensitive)
- *   hasSpellcasting              — actor has any spellcasting trait defined
- *   traitAtLeast:traitName:N     — actor's trait value >= N
- *
- * Non-PC actors always pass keyword checks (requirements are never enforced on adversaries).
- * Keyword evaluation errors fail permissively (return true) so broken configs don't lock players.
- *
- * @param {string|null|undefined} requirement
+ * @param {string} req  — already trimmed atom string
  * @param {Actor} actor
  * @returns {Promise<boolean>}
  */
-export async function evaluateRequirement(requirement, actor) {
-  if (!requirement) return true;
-  const req = requirement.trim();
-
+async function _evaluateAtom(req, actor) {
   // ── Keyword: hasFeature:FeatureName ──────────────────────────────────────
   if (req.startsWith('hasFeature:')) {
     if (actor.type !== 'character') return true;
@@ -119,7 +138,75 @@ export async function evaluateRequirement(requirement, actor) {
     } catch (_) { return true; }
   }
 
+  // ── Keyword: tierAtLeast:N ───────────────────────────────────────────────
+  if (req.startsWith('tierAtLeast:')) {
+    if (actor.type !== 'character') return true;
+    const minValue = Number(req.slice('tierAtLeast:'.length).trim());
+    if (isNaN(minValue)) return true;
+    try {
+      return Number(actor.getRollData()?.tier ?? 0) >= minValue;
+    } catch (_) { return true; }
+  }
+
+  // ── Keyword: levelAtLeast:N ──────────────────────────────────────────────
+  if (req.startsWith('levelAtLeast:')) {
+    if (actor.type !== 'character') return true;
+    const minValue = Number(req.slice('levelAtLeast:'.length).trim());
+    if (isNaN(minValue)) return true;
+    try {
+      return Number(actor.getRollData()?.level ?? 0) >= minValue;
+    } catch (_) { return true; }
+  }
+
+  // ── Keyword: classIs:ClassName ───────────────────────────────────────────
+  if (req.startsWith('classIs:')) {
+    if (actor.type !== 'character') return true;
+    const className = req.slice('classIs:'.length).trim().toLowerCase();
+    if (!className) return true;
+    try {
+      return actor.items.some(i => i.type === 'class' && i.name?.toLowerCase() === className);
+    } catch (_) { return true; }
+  }
+
   // ── Fallback: standard Roll formula ─────────────────────────────────────
   const result = await evaluateFormula(req, actor);
   return result !== 0;
+}
+
+/**
+ * Evaluates a requirement expression against an actor.
+ *
+ * Supports compound expressions with AND / OR operators (case-insensitive,
+ * space-delimited). AND binds more tightly than OR (standard precedence).
+ *
+ * Examples:
+ *   classIs:Warrior OR classIs:Ranger
+ *   tierAtLeast:2 AND hasFeature:Wildtouch
+ *   classIs:Warrior OR classIs:Ranger AND tierAtLeast:2
+ *     → (classIs:Warrior) OR (classIs:Ranger AND tierAtLeast:2)
+ *
+ * Single atoms fall back to keyword or Roll evaluation as before.
+ * Non-PC actors always pass keyword checks.
+ *
+ * @param {string|null|undefined} requirement
+ * @param {Actor} actor
+ * @returns {Promise<boolean>}
+ */
+export async function evaluateRequirement(requirement, actor) {
+  if (!requirement) return true;
+
+  // Split by OR — each branch is an AND-chain.
+  const orBranches = requirement.trim().split(/ OR /i);
+  for (const branch of orBranches) {
+    const andAtoms = branch.trim().split(/ AND /i);
+    let branchPasses = true;
+    for (const atom of andAtoms) {
+      if (!(await _evaluateAtom(atom.trim(), actor))) {
+        branchPasses = false;
+        break;
+      }
+    }
+    if (branchPasses) return true;
+  }
+  return false;
 }

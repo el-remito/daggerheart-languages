@@ -898,7 +898,7 @@
   font-size:     1em;
 }
 
-/* Apply button */
+/* Apply button (legacy — kept for any external references) */
 .dh-settings-config .picker-apply-btn {
   align-self:    flex-end;
   padding:       0.22em 0.8em;
@@ -914,4 +914,43 @@
 
 .dh-settings-config .picker-apply-btn:hover {
   background: rgba(201, 170, 113, 0.28);
+}
+
+/* Three-button row: Set / AND / OR */
+.dh-settings-config .picker-actions {
+  display:     flex;
+  gap:         0.4em;
+  margin-top:  0.4em;
+}
+
+.dh-settings-config .picker-actions button {
+  flex:          1;
+  padding:       0.22em 0.5em;
+  border-radius: 3px;
+  font-size:     0.85em;
+  font-weight:   600;
+  cursor:        pointer;
+  transition:    background 0.15s;
+}
+
+/* Set — gold tone (same as the old apply button) */
+.dh-settings-config .picker-set-btn {
+  border:     1px solid rgba(201, 170, 113, 0.5);
+  background: rgba(201, 170, 113, 0.14);
+  color:      #c9aa71;
+}
+.dh-settings-config .picker-set-btn:hover {
+  background: rgba(201, 170, 113, 0.28);
+}
+
+/* AND / OR — muted teal tone to distinguish from Set */
+.dh-settings-config .picker-and-btn,
+.dh-settings-config .picker-or-btn {
+  border:     1px solid rgba(100, 180, 170, 0.45);
+  background: rgba(100, 180, 170, 0.10);
+  color:      #7ecec5;
+}
+.dh-settings-config .picker-and-btn:hover,
+.dh-settings-config .picker-or-btn:hover {
+  background: rgba(100, 180, 170, 0.22);
 }

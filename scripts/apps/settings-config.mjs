@@ -300,15 +300,20 @@ export class LanguageSettingsConfig extends foundry.applications.api.HandlebarsA
       const toggleBtn   = wrapper.querySelector('.picker-toggle-btn');
       const pickerPanel = wrapper.querySelector('.formula-picker');
       const typeSelect  = wrapper.querySelector('.picker-type-select');
-      const applyBtn    = wrapper.querySelector('.picker-apply-btn');
+      const setBtn  = wrapper.querySelector('.picker-set-btn');
+      const andBtn  = wrapper.querySelector('.picker-and-btn');
+      const orBtn   = wrapper.querySelector('.picker-or-btn');
 
       // Show/hide the correct sub-field block for the selected type.
       const syncSubFields = () => {
         const type = typeSelect.value;
         for (const sub of wrapper.querySelectorAll('.picker-sub')) sub.hidden = true;
-        if (type === 'hasFeature')   wrapper.querySelector('.picker-sub--feature').hidden = false;
-        if (type === 'hasDomain')    wrapper.querySelector('.picker-sub--domain').hidden  = false;
-        if (type === 'traitAtLeast') wrapper.querySelector('.picker-sub--trait').hidden   = false;
+        if (type === 'hasFeature')   wrapper.querySelector('.picker-sub--feature').hidden       = false;
+        if (type === 'hasDomain')    wrapper.querySelector('.picker-sub--domain').hidden        = false;
+        if (type === 'traitAtLeast') wrapper.querySelector('.picker-sub--trait').hidden         = false;
+        if (type === 'tierAtLeast')  wrapper.querySelector('.picker-sub--tier-at-least').hidden = false;
+        if (type === 'levelAtLeast') wrapper.querySelector('.picker-sub--level-at-least').hidden = false;
+        if (type === 'classIs')      wrapper.querySelector('.picker-sub--class').hidden         = false;
         // 'hasSpellcasting' and 'custom' need no sub-fields.
       };
 
@@ -319,44 +324,66 @@ export class LanguageSettingsConfig extends foundry.applications.api.HandlebarsA
 
       typeSelect?.addEventListener('change', syncSubFields);
 
-      applyBtn?.addEventListener('click', () => {
+      // Build the atom formula string from the current picker state.
+      const buildFormula = () => {
         const type = typeSelect.value;
-        let formula = '';
-
         switch (type) {
           case 'hasFeature': {
             const name = wrapper.querySelector('.picker-feature-name')?.value.trim();
-            if (name) formula = `hasFeature:${name}`;
-            break;
+            return name ? `hasFeature:${name}` : '';
           }
           case 'hasDomain': {
             const name = wrapper.querySelector('.picker-domain-name')?.value.trim();
-            if (name) formula = `hasDomain:${name}`;
-            break;
+            return name ? `hasDomain:${name}` : '';
           }
           case 'hasSpellcasting':
-            formula = 'hasSpellcasting';
-            break;
+            return 'hasSpellcasting';
           case 'traitAtLeast': {
             const trait  = wrapper.querySelector('.picker-trait-select')?.value;
             const minVal = wrapper.querySelector('.picker-min-value')?.value;
-            if (trait && minVal) formula = `traitAtLeast:${trait}:${minVal}`;
-            break;
+            return (trait && minVal) ? `traitAtLeast:${trait}:${minVal}` : '';
+          }
+          case 'tierAtLeast': {
+            const min = wrapper.querySelector('.picker-tier-min')?.value ?? '1';
+            return `tierAtLeast:${min}`;
+          }
+          case 'levelAtLeast': {
+            const min = wrapper.querySelector('.picker-level-min')?.value ?? '1';
+            return `levelAtLeast:${min}`;
+          }
+          case 'classIs': {
+            const cls = wrapper.querySelector('.picker-class-name')?.value.trim();
+            return cls ? `classIs:${cls}` : '';
           }
           case 'custom':
           default:
-            // Nothing to insert; just close.
-            pickerPanel.hidden = true;
-            return;
+            return '';
         }
+      };
 
-        if (formula && reqInput) {
-          reqInput.value = formula;
+      // Apply the built atom to the requirement field using the given mode.
+      // 'set' replaces; 'and'/'or' append if field is non-empty, else act as 'set'.
+      const applyToField = (mode) => {
+        const formula = buildFormula();
+        if (!formula) { pickerPanel.hidden = true; return; }
+        if (reqInput) {
+          const existing = reqInput.value.trim();
+          if (mode === 'set' || !existing) {
+            reqInput.value = formula;
+          } else if (mode === 'and') {
+            reqInput.value = `${existing} AND ${formula}`;
+          } else if (mode === 'or') {
+            reqInput.value = `${existing} OR ${formula}`;
+          }
           // Fire the existing sync listener so #config is updated immediately.
           reqInput.dispatchEvent(new Event('input', { bubbles: true }));
         }
         pickerPanel.hidden = true;
-      });
+      };
+
+      setBtn?.addEventListener('click', () => applyToField('set'));
+      andBtn?.addEventListener('click', () => applyToField('and'));
+      orBtn?.addEventListener('click',  () => applyToField('or'));
     }
 
     // Restore collapse state: any <details> whose ID was in the closed set before
@@ -480,12 +507,11 @@ export class LanguageSettingsConfig extends foundry.applications.api.HandlebarsA
     };
 
     // ── Keyword-requirement syntax checker ────────────────────────────────
-    // Keyword requirements are never passed to Roll — we validate syntax only.
+    // Validates a single requirement atom (no AND/OR). Keywords are syntax-
+    // checked only; Roll formulas are evaluated against MOCK_ACTOR.
     const VALID_TRAITS = ['agility', 'strength', 'finesse', 'instinct', 'presence', 'knowledge'];
-    const checkRequirement = async (requirement, label) => {
-      if (!requirement) return;
-      const req = requirement.trim();
-
+    const checkAtom = async (req, label) => {
+      if (!req) return;
       if (req.startsWith('hasFeature:')) {
         const value = req.slice('hasFeature:'.length).trim();
         if (!value) errors.push(game.i18n.format('DHLANG.Settings.validationError', { error: `${label}: hasFeature requires a feature name (e.g. hasFeature:Spellcasting)` }));
@@ -496,7 +522,7 @@ export class LanguageSettingsConfig extends foundry.applications.api.HandlebarsA
         if (!value) errors.push(game.i18n.format('DHLANG.Settings.validationError', { error: `${label}: hasDomain requires a domain name (e.g. hasDomain:Divine)` }));
         return;
       }
-      if (req === 'hasSpellcasting') return; // always valid
+      if (req === 'hasSpellcasting') return;
       if (req.startsWith('traitAtLeast:')) {
         const parts = req.slice('traitAtLeast:'.length).split(':');
         const trait = parts[0]?.toLowerCase();
@@ -508,9 +534,36 @@ export class LanguageSettingsConfig extends foundry.applications.api.HandlebarsA
         }
         return;
       }
-
+      if (req.startsWith('tierAtLeast:')) {
+        const n = Number(req.slice('tierAtLeast:'.length).trim());
+        if (isNaN(n)) errors.push(game.i18n.format('DHLANG.Settings.validationError', {
+          error: `${label}: tierAtLeast requires a number (e.g. tierAtLeast:2)`,
+        }));
+        return;
+      }
+      if (req.startsWith('levelAtLeast:')) {
+        const n = Number(req.slice('levelAtLeast:'.length).trim());
+        if (isNaN(n)) errors.push(game.i18n.format('DHLANG.Settings.validationError', {
+          error: `${label}: levelAtLeast requires a number (e.g. levelAtLeast:3)`,
+        }));
+        return;
+      }
+      if (req.startsWith('classIs:')) {
+        const cls = req.slice('classIs:'.length).trim();
+        if (!cls) errors.push(game.i18n.format('DHLANG.Settings.validationError', {
+          error: `${label}: classIs requires a class name (e.g. classIs:Warrior)`,
+        }));
+        return;
+      }
       // Standard Roll formula fallback
-      await check(requirement, label);
+      await check(req, label);
+    };
+
+    // Splits compound AND/OR expressions and validates each atom.
+    const checkRequirement = async (requirement, label) => {
+      if (!requirement) return;
+      const atoms = requirement.trim().split(/ OR | AND /i).map(a => a.trim()).filter(Boolean);
+      for (const atom of atoms) await checkAtom(atom, label);
     };
 
     // ── Validate point formula ────────────────────────────────────────────

@@ -32,6 +32,9 @@
 
   "DHLANG.Picker.toggle":              "Formula Helper",
   "DHLANG.Picker.apply":               "Apply",
+  "DHLANG.Picker.set":                 "Set",
+  "DHLANG.Picker.andOperator":         "AND",
+  "DHLANG.Picker.orOperator":          "OR",
   "DHLANG.Picker.typeCustom":          "Custom formula",
   "DHLANG.Picker.typeHasFeature":      "Has Feature",
   "DHLANG.Picker.typeHasDomain":       "Has Domain",
@@ -46,11 +49,18 @@
   "DHLANG.Picker.traitInstinct":       "Instinct",
   "DHLANG.Picker.traitPresence":       "Presence",
   "DHLANG.Picker.traitKnowledge":      "Knowledge",
+  "DHLANG.Picker.typeTierAtLeast":     "Tier at Least",
+  "DHLANG.Picker.typeLevelAtLeast":    "Level at Least",
+  "DHLANG.Picker.typeClassIs":         "Class Is",
+  "DHLANG.Picker.className":           "Class name",
 
   "DHLANG.Requirement.hasFeature":      "Must have feature: {value}",
   "DHLANG.Requirement.hasDomain":       "Must have domain: {value}",
   "DHLANG.Requirement.hasSpellcasting": "Must have a spellcasting trait",
   "DHLANG.Requirement.traitAtLeast":    "Must have {trait} {value} or higher",
+  "DHLANG.Requirement.tierAtLeast":    "Must have Tier {value} or higher",
+  "DHLANG.Requirement.levelAtLeast":   "Must have Level {value} or higher",
+  "DHLANG.Requirement.classIs":        "Must be a {value}",
 
   "DHLANG.Badge.noLanguages":       "This creature speaks no known languages",
   "DHLANG.Badge.speaksLanguages":   "This creature speaks the following languages: {languages}",
