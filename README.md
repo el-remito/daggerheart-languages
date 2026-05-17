@@ -65,11 +65,36 @@ The formula helper supports the following types out of the box:
 | Has feature | `hasFeature:Wildtouch` | Actor must have an item named "Wildtouch" |
 | Has domain | `hasDomain:Splendor` | Actor must have the Splendor domain |
 | Has spellcasting | `hasSpellcasting` | Actor must have a spellcasting trait |
+| Tier threshold | `tierAtLeast:2` | Actor must be Tier 2 or higher |
+| Level threshold | `levelAtLeast:5` | Actor must be Level 5 or higher |
+| Class check | `classIs:Warrior` | Actor must have a class item named "Warrior" |
 | Roll expression | `@tier >= 2` | Any Foundry roll formula resolving to truthy |
+
+Requirements can be combined using `AND` and `OR` operators (standard precedence — AND binds tighter):
+
+```
+classIs:Warrior OR classIs:Ranger
+tierAtLeast:2 AND hasFeature:Wildtouch
+```
+
+The formula picker's **Set / AND / OR** buttons let GMs build compound expressions interactively.
 
 ---
 
 ## Changelog
+
+### 1.1.1
+- Language dialog: categories start collapsed on first open
+- Language dialog: scrollbar contained inside the window (page no longer scrolls)
+- Language dialog: **Related Languages** ⓘ badge listing cousin languages and their discounts
+- Language dialog: **Share to chat** 📢 button posts acquired languages as a chat message
+- Language dialog: disabled Acquire button now shows a tooltip — unmet requirement or insufficient points
+- Settings config: categories and languages start collapsed on first open
+- Settings config: **Cost Rules** per language — attach `{ requirement, cost }` rules; first matching rule overrides the base cost before cousin discounts apply
+- Settings config: **Special Cost** ⓘ badge when a cost rule actively reduces a language's cost for the current actor
+- New requirement keyword atoms: `tierAtLeast:N`, `levelAtLeast:N`, `classIs:ClassName`
+- Compound requirement expressions: combine any atoms with `AND` / `OR` operators (standard precedence)
+- Formula picker: **Set / AND / OR** buttons replace the single Apply button for building compound requirements interactively
 
 ### 1.1.0
 - Acquired languages section moved above category list in the dialog

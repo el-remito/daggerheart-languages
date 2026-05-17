@@ -75,7 +75,7 @@ export class LanguageDialog extends foundry.applications.api.HandlebarsApplicati
       const sortedLanguages = [...(category.languages ?? [])].sort((a, b) => a.name.localeCompare(b.name));
       for (const language of sortedLanguages) {
         const alreadyAcquired = acquiredIds.includes(language.id);
-        const { effectiveCost, originalCost, cousinApplied, requirementWaived } =
+        const { effectiveCost, originalCost, cousinApplied, requirementWaived, costRuleApplied } =
           await resolveLanguageCost(language, category, this.actor);
         const requirementFormula = resolveEffectiveRequirement(language, category, requirementWaived);
         const requirementMet = await evaluateRequirement(requirementFormula, this.actor);
@@ -88,6 +88,12 @@ export class LanguageDialog extends foundry.applications.api.HandlebarsApplicati
           .filter(Boolean);
         const relatedTooltip = cousinsInfo.length > 0
           ? `<strong>${game.i18n.localize('DHLANG.Dialog.relatedLanguages')}</strong><br>${cousinsInfo.join('<br>')}`
+          : null;
+
+        const specialCostTooltip = (costRuleApplied?.requirement)
+          ? game.i18n.format('DHLANG.Dialog.specialCost', {
+              requirement: formatRequirement(costRuleApplied.requirement),
+            })
           : null;
 
         let discountTooltip = null;
@@ -104,9 +110,18 @@ export class LanguageDialog extends foundry.applications.api.HandlebarsApplicati
         // Adversaries: cost and requirements are display-only, never enforced.
         const canAcquire = !alreadyAcquired && (isPC ? (canAfford && requirementMet) : true);
 
-        const requirementTooltip = (!requirementMet && requirementFormula)
-          ? game.i18n.format('DHLANG.Dialog.requirementUnmet', { requirement: formatRequirement(requirementFormula) })
-          : '';
+        // Build the disabled-button tooltip: requirement takes priority; affordability is the fallback.
+        let requirementTooltip = '';
+        if (!requirementMet && requirementFormula) {
+          requirementTooltip = game.i18n.format('DHLANG.Dialog.requirementUnmet', {
+            requirement: formatRequirement(requirementFormula),
+          });
+        } else if (isPC && !canAfford && !alreadyAcquired) {
+          requirementTooltip = game.i18n.format('DHLANG.Dialog.cannotAfford', {
+            cost:      effectiveCost,
+            remaining: pool.remaining,
+          });
+        }
 
         languages.push({
           id:               language.id,
@@ -123,6 +138,7 @@ export class LanguageDialog extends foundry.applications.api.HandlebarsApplicati
           canAfford,
           discountTooltip,
           relatedTooltip,
+          specialCostTooltip,
         });
       }
       if (languages.length > 0) {

@@ -27,6 +27,11 @@
   "DHLANG.Settings.confirmDeleteCategory": "Delete this category and all its languages? This cannot be undone until you save.",
   "DHLANG.Settings.confirmDeleteLanguage": "Delete this language? This cannot be undone until you save.",
   "DHLANG.Settings.confirmDeleteCousin":   "Remove this cousin relationship?",
+  "DHLANG.Settings.costRules":             "Cost Rules",
+  "DHLANG.Settings.addCostRule":           "Add Cost Rule",
+  "DHLANG.Settings.costRuleRequirement":   "Requirement",
+  "DHLANG.Settings.costRuleCost":          "Cost",
+  "DHLANG.Settings.confirmDeleteCostRule": "Remove this cost rule?",
 
   "DHLANG.Search.placeholder": "Search languages, categories or their descriptions…",
 
@@ -75,12 +80,14 @@
   "DHLANG.Dialog.remove":                 "Remove",
   "DHLANG.Dialog.cousinDiscount":         "Cousin discount applied",
   "DHLANG.Dialog.requirementUnmet":       "Requirement not met: {requirement}",
+  "DHLANG.Dialog.cannotAfford":           "Costs {cost} point(s) — only {remaining} remaining",
   "DHLANG.Dialog.confirmAcquireTitle":    "Acquire Language",
   "DHLANG.Dialog.confirmAcquireContent":  "Acquire {name} for {cost} point(s)? This cannot be undone without GM intervention.",
   "DHLANG.Dialog.adversaryFreeNote":      "Point costs are displayed but not enforced for adversaries.",
   "DHLANG.Dialog.noLanguagesConfigured":  "No languages have been configured. Ask your GM to set up languages in Module Settings.",
   "DHLANG.Dialog.discountReason":         "Discounted because {name} already knows {cousin}",
   "DHLANG.Dialog.relatedLanguages":       "Related Languages",
+  "DHLANG.Dialog.specialCost":            "Special Cost: {requirement}",
   "DHLANG.Dialog.shareTooltip":           "Share to chat",
   "DHLANG.Dialog.chatMessage":            "Known Languages: {languages}"
 }

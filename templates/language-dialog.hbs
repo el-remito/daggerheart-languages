@@ -63,6 +63,9 @@
         {{#if this.relatedTooltip}}
           <span class="related-langs-info" data-tooltip="{{this.relatedTooltip}}">ⓘ</span>
         {{/if}}
+        {{#if this.specialCostTooltip}}
+          <span class="special-cost-info" data-tooltip="{{this.specialCostTooltip}}">ⓘ</span>
+        {{/if}}
         {{#if this.discountTooltip}}<span class="discount-info{{#if this.alreadyAcquired}} is-acquired{{/if}}" data-tooltip="{{this.discountTooltip}}">ⓘ</span>{{/if}}
         <span class="lang-cost{{#if this.alreadyAcquired}} is-acquired{{/if}}">
           {{localize "DHLANG.Dialog.cost"}}:

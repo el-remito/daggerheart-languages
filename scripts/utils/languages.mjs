@@ -1,5 +1,5 @@
 import { MODULE_ID, FLAGS, SETTINGS } from '../constants.mjs';
-import { evaluateFormula } from './formula.mjs';
+import { evaluateFormula, evaluateRequirement } from './formula.mjs';
 
 /**
  * Returns the array of language IDs acquired by this actor.
@@ -42,12 +42,29 @@ export function findLanguage(languageId, config) {
  * @returns {Promise<{ effectiveCost: number, originalCost: number, cousinApplied: object|null, requirementWaived: boolean }>}
  */
 export async function resolveLanguageCost(language, category, actor) {
-  const originalCost = Number(language.cost ?? category.cost ?? 0);
+  // Base cost from language override or category default.
+  let originalCost = Number(language.cost ?? category.cost ?? 0);
+
+  // Cost rules: evaluated top-to-bottom; first matching rule overrides the base cost.
+  let costRuleApplied = null;
+  for (const rule of (language.costRules ?? [])) {
+    try {
+      const met = await evaluateRequirement(rule.requirement, actor);
+      if (met) {
+        originalCost    = Number(rule.cost ?? 0);
+        costRuleApplied = rule;
+        break;
+      }
+    } catch (_) {
+      // Evaluation error — skip this rule.
+    }
+  }
+
   const acquiredIds = getAcquiredLanguageIds(actor);
   const matchingCousins = (language.cousins ?? []).filter(c => acquiredIds.includes(c.languageId));
 
   if (matchingCousins.length === 0) {
-    return { effectiveCost: originalCost, originalCost, cousinApplied: null, requirementWaived: false };
+    return { effectiveCost: originalCost, originalCost, cousinApplied: null, requirementWaived: false, costRuleApplied };
   }
 
   // Evaluate discount amount for each matching cousin and derive effective cost; skip errors.
@@ -63,14 +80,14 @@ export async function resolveLanguageCost(language, category, actor) {
   }
 
   if (evaluated.length === 0) {
-    return { effectiveCost: originalCost, originalCost, cousinApplied: null, requirementWaived: false };
+    return { effectiveCost: originalCost, originalCost, cousinApplied: null, requirementWaived: false, costRuleApplied };
   }
 
   // Pick the cousin that yields the lowest (best) discounted cost; ties go to first found.
   evaluated.sort((a, b) => a.discountedCost - b.discountedCost);
   const { cousin: cousinApplied, discountedCost: effectiveCost } = evaluated[0];
 
-  return { effectiveCost, originalCost, cousinApplied, requirementWaived: cousinApplied.waiveRequirement ?? false };
+  return { effectiveCost, originalCost, cousinApplied, requirementWaived: cousinApplied.waiveRequirement ?? false, costRuleApplied };
 }
 
 /**

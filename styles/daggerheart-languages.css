@@ -284,6 +284,20 @@
   color: #c9aa71;
 }
 
+/* Special Cost ⓘ badge — shown when a cost rule actively overrides this language's cost */
+.dh-languages-dialog .special-cost-info {
+  font-size:   0.82em;
+  color:       rgba(201, 170, 113, 0.5);
+  cursor:      default;
+  user-select: none;
+  transition:  color 0.15s;
+  flex-shrink: 0;
+}
+
+.dh-languages-dialog .special-cost-info:hover {
+  color: #c9aa71;
+}
+
 .dh-languages-dialog .lang-acquired-tag {
   color:     #6dbf6d;
   font-size: 0.9em;
@@ -648,6 +662,51 @@
   gap:         0.3em;
   font-size:   0.82em;
   color:       #aaa;
+}
+
+/* Cost rules section */
+.dh-settings-config .cost-rules-section {
+  padding: 0.4em 0.6em;
+}
+
+.dh-settings-config .cost-rules-section h4 {
+  color:          #c9aa71;
+  font-size:      0.8em;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin:         0 0 0.35em;
+  font-weight:    700;
+}
+
+.dh-settings-config .cost-rule-row {
+  display:     flex;
+  align-items: flex-start;
+  flex-wrap:   wrap;
+  gap:         0.5em;
+  padding:     0.4em 0;
+  border-top:  1px solid rgba(255, 255, 255, 0.05);
+}
+
+.dh-settings-config .cost-rule-row .requirement-group {
+  flex: 1 1 100%;
+}
+
+.dh-settings-config .cost-rule-cost {
+  display:     flex;
+  align-items: center;
+  gap:         0.3em;
+  font-size:   0.82em;
+  color:       #aaa;
+}
+
+.dh-settings-config .cost-rule-cost input {
+  width:         4em;
+  background:    rgba(255, 255, 255, 0.06);
+  border:        1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 3px;
+  padding:       0.2em 0.3em;
+  color:         #eee;
+  font-size:     1em;
 }
 
 /* Buttons */

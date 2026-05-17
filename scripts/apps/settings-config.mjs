@@ -34,25 +34,25 @@ export class LanguageSettingsConfig extends foundry.applications.api.HandlebarsA
   // Working copy of config — mutations happen here, not in game.settings until Save.
   #config = null;
 
-  // Collapse state — persisted across re-renders so user-closed <details> stay closed.
-  #collapsedCategories = new Set();
-  #collapsedLanguages  = new Set();
+  // Collapse state — persisted across re-renders so user-opened <details> stay open.
+  #openCategories = new Set();
+  #openLanguages  = new Set();
 
-  /** Snapshot which <details> elements are currently closed before a re-render wipes the DOM. */
+  /** Snapshot which <details> elements are currently open before a re-render wipes the DOM. */
   _captureCollapseState() {
     if (!this.element) return;
-    this.#collapsedCategories = new Set();
-    this.#collapsedLanguages  = new Set();
+    this.#openCategories = new Set();
+    this.#openLanguages  = new Set();
     for (const d of this.element.querySelectorAll('.config-category')) {
-      if (!d.open) {
+      if (d.open) {
         const id = d.querySelector('[data-category-id]')?.dataset.categoryId;
-        if (id) this.#collapsedCategories.add(id);
+        if (id) this.#openCategories.add(id);
       }
     }
     for (const d of this.element.querySelectorAll('.config-language')) {
-      if (!d.open) {
+      if (d.open) {
         const id = d.querySelector('[data-language-id]')?.dataset.languageId;
-        if (id) this.#collapsedLanguages.add(id);
+        if (id) this.#openLanguages.add(id);
       }
     }
   }
@@ -260,6 +260,44 @@ export class LanguageSettingsConfig extends foundry.applications.api.HandlebarsA
       });
     }
 
+    for (const btn of el.querySelectorAll('[data-action="addCostRule"]')) {
+      btn.addEventListener('click', e => {
+        this._addCostRule(e.currentTarget.dataset.categoryId, e.currentTarget.dataset.languageId);
+      });
+    }
+
+    for (const btn of el.querySelectorAll('[data-action="removeCostRule"]')) {
+      btn.addEventListener('click', e => {
+        this._removeCostRule(
+          e.currentTarget.dataset.categoryId,
+          e.currentTarget.dataset.languageId,
+          Number(e.currentTarget.dataset.ruleIndex),
+        );
+      });
+    }
+
+    for (const input of el.querySelectorAll('[data-field="costRuleRequirement"]')) {
+      input.addEventListener('input', e => {
+        const rule = this._findCostRule(
+          e.currentTarget.dataset.categoryId,
+          e.currentTarget.dataset.languageId,
+          Number(e.currentTarget.dataset.ruleIndex),
+        );
+        if (rule) rule.requirement = e.target.value || null;
+      });
+    }
+
+    for (const input of el.querySelectorAll('[data-field="costRuleCost"]')) {
+      input.addEventListener('input', e => {
+        const rule = this._findCostRule(
+          e.currentTarget.dataset.categoryId,
+          e.currentTarget.dataset.languageId,
+          Number(e.currentTarget.dataset.ruleIndex),
+        );
+        if (rule) rule.cost = e.target.value;
+      });
+    }
+
     // Search bar — filters config-language blocks and hides empty categories in real time.
     // Matches against: language name, language description, category name, category description.
     // If the category name/description matches, all its languages are shown.
@@ -386,15 +424,15 @@ export class LanguageSettingsConfig extends foundry.applications.api.HandlebarsA
       orBtn?.addEventListener('click',  () => applyToField('or'));
     }
 
-    // Restore collapse state: any <details> whose ID was in the closed set before
-    // the re-render should have its open attribute removed again.
+    // Restore collapse state: any <details> whose ID was open before the re-render
+    // should have its open attribute added back.
     for (const d of el.querySelectorAll('.config-category')) {
       const id = d.querySelector('[data-category-id]')?.dataset.categoryId;
-      if (id && this.#collapsedCategories.has(id)) d.removeAttribute('open');
+      if (id && this.#openCategories.has(id)) d.setAttribute('open', '');
     }
     for (const d of el.querySelectorAll('.config-language')) {
       const id = d.querySelector('[data-language-id]')?.dataset.languageId;
-      if (id && this.#collapsedLanguages.has(id)) d.removeAttribute('open');
+      if (id && this.#openLanguages.has(id)) d.setAttribute('open', '');
     }
   }
 
@@ -410,6 +448,10 @@ export class LanguageSettingsConfig extends foundry.applications.api.HandlebarsA
 
   _findCousin(categoryId, languageId, index) {
     return this._findLanguage(categoryId, languageId)?.cousins[index] ?? null;
+  }
+
+  _findCostRule(categoryId, languageId, index) {
+    return this._findLanguage(categoryId, languageId)?.costRules?.[index] ?? null;
   }
 
   _addCategory() {
@@ -444,6 +486,7 @@ export class LanguageSettingsConfig extends foundry.applications.api.HandlebarsA
       requirement: null,
       description: null,
       cousins:     [],
+      costRules:   [],
     });
     this.render();
   }
@@ -476,6 +519,25 @@ export class LanguageSettingsConfig extends foundry.applications.api.HandlebarsA
     const lang = this._findLanguage(categoryId, languageId);
     if (!lang) return;
     lang.cousins.splice(index, 1);
+    this.render();
+  }
+
+  _addCostRule(categoryId, languageId) {
+    const lang = this._findLanguage(categoryId, languageId);
+    if (!lang) return;
+    (lang.costRules ??= []).push({ requirement: null, cost: 0 });
+    this.render();
+  }
+
+  async _removeCostRule(categoryId, languageId, index) {
+    const confirmed = await foundry.applications.api.DialogV2.confirm({
+      window: { title: game.i18n.localize('DHLANG.Settings.confirmDeleteTitle') },
+      content: `<p>${game.i18n.localize('DHLANG.Settings.confirmDeleteCostRule')}</p>`,
+    });
+    if (!confirmed) return;
+    const lang = this._findLanguage(categoryId, languageId);
+    if (!lang) return;
+    lang.costRules.splice(index, 1);
     this.render();
   }
 
@@ -588,6 +650,18 @@ export class LanguageSettingsConfig extends foundry.applications.api.HandlebarsA
           }
         }
         if (lang.requirement) await checkRequirement(lang.requirement, `Language "${lang.name}" requirement`);
+
+        for (const rule of (lang.costRules ?? [])) {
+          if (rule.cost !== null && rule.cost !== '') {
+            const rc = await check(rule.cost, `Cost rule in "${lang.name}"`);
+            if (rc !== null && rc < 0) {
+              errors.push(game.i18n.format('DHLANG.Settings.validationError', {
+                error: `Cost rule in "${lang.name}" cost must be non-negative`,
+              }));
+            }
+          }
+          if (rule.requirement) await checkRequirement(rule.requirement, `Cost rule in "${lang.name}" requirement`);
+        }
 
         for (const cousin of (lang.cousins ?? [])) {
           const da = await check(cousin.discountAmount, `Cousin discount amount in "${lang.name}"`);
