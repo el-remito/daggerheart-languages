@@ -149,6 +149,31 @@ export class LanguageDialog extends foundry.applications.api.HandlebarsApplicati
       const id = d.dataset.categoryId;
       if (id && this.#collapsedCategories.has(id)) d.removeAttribute('open');
     }
+
+    // Search bar — filters language rows and hides empty categories in real time.
+    // Matches against: language name, language description, category name, category description.
+    // If the category name/description matches, all its languages are shown.
+    const searchInput = this.element.querySelector('.dh-lang-search');
+    if (searchInput) {
+      searchInput.addEventListener('input', () => {
+        const query = searchInput.value.trim().toLowerCase();
+        for (const category of this.element.querySelectorAll('.lang-category')) {
+          const catName = category.querySelector('.lang-category-title')?.textContent.toLowerCase() ?? '';
+          const catDesc = category.querySelector('.lang-category-description')?.textContent.toLowerCase() ?? '';
+          const categoryMatches = !query || catName.includes(query) || catDesc.includes(query);
+
+          let anyVisible = false;
+          for (const row of category.querySelectorAll('.lang-row')) {
+            const name = row.querySelector('.lang-name')?.textContent.toLowerCase() ?? '';
+            const desc = row.querySelector('.lang-description')?.textContent.toLowerCase() ?? '';
+            const match = categoryMatches || name.includes(query) || desc.includes(query);
+            row.hidden = !match;
+            if (match) anyVisible = true;
+          }
+          category.hidden = !anyVisible && !categoryMatches;
+        }
+      });
+    }
   }
 
   async _onAcquireLanguage(event) {

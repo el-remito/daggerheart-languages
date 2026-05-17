@@ -260,6 +260,34 @@ export class LanguageSettingsConfig extends foundry.applications.api.HandlebarsA
       });
     }
 
+    // Search bar — filters config-language blocks and hides empty categories in real time.
+    // Matches against: language name, language description, category name, category description.
+    // If the category name/description matches, all its languages are shown.
+    const searchInput = el.querySelector('.dh-lang-search');
+    if (searchInput) {
+      searchInput.addEventListener('input', () => {
+        const query = searchInput.value.trim().toLowerCase();
+        for (const category of el.querySelectorAll('.config-category')) {
+          const catName = category.querySelector('[data-field="categoryName"]')?.value.toLowerCase() ?? '';
+          const catDesc = category.querySelector('[data-field="categoryDescription"]')?.value.toLowerCase() ?? '';
+          const categoryMatches = !query || catName.includes(query) || catDesc.includes(query);
+
+          let anyVisible = false;
+          for (const langEl of category.querySelectorAll('.config-language')) {
+            const name = langEl.querySelector('[data-field="languageName"]')?.value.toLowerCase() ?? '';
+            const desc = langEl.querySelector('[data-field="languageDescription"]')?.value.toLowerCase() ?? '';
+            const match = categoryMatches || name.includes(query) || desc.includes(query);
+            langEl.hidden = !match;
+            if (match) anyVisible = true;
+          }
+          // If category name/description matches, show the whole category regardless.
+          // Otherwise hide it only if it has languages and none matched.
+          const hasLanguages = category.querySelectorAll('.config-language').length > 0;
+          category.hidden = !categoryMatches && hasLanguages && !anyVisible;
+        }
+      });
+    }
+
     el.querySelector('[data-action="saveConfig"]')
       ?.addEventListener('click', () => this._onSave());
 

@@ -16,6 +16,11 @@
   <p class="adversary-note">{{localize "DHLANG.Dialog.adversaryFreeNote"}}</p>
   {{/if}}
 
+  {{!-- Search bar --}}
+  <div class="dh-lang-search-bar">
+    <input type="search" class="dh-lang-search" placeholder="{{localize 'DHLANG.Search.placeholder'}}" />
+  </div>
+
   {{!-- Acquired languages --}}
   {{#if acquiredLanguages.length}}
   <div class="acquired-section">

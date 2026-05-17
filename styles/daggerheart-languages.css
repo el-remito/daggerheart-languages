@@ -675,6 +675,33 @@
   background: rgba(255, 255, 255, 0.12);
 }
 
+/* ── Search Bar (shared by dialog and settings) ─────────────────────────── */
+
+.dh-lang-search-bar {
+  padding: 0 0 0.1rem;
+}
+
+.dh-lang-search {
+  width:         100%;
+  background:    rgba(255, 255, 255, 0.06);
+  border:        1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 4px;
+  padding:       0.3em 0.55em;
+  color:         #eee;
+  font-size:     0.88em;
+  font-family:   inherit;
+  box-sizing:    border-box;
+}
+
+.dh-lang-search:focus {
+  outline:      none;
+  border-color: rgba(201, 170, 113, 0.55);
+}
+
+.dh-lang-search::placeholder {
+  color: #666;
+}
+
 /* ── Formula Picker ─────────────────────────────────────────────────────── */
 
 /* Wrapper replacing <label> for requirement fields */

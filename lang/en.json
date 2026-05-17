@@ -28,6 +28,8 @@
   "DHLANG.Settings.confirmDeleteLanguage": "Delete this language? This cannot be undone until you save.",
   "DHLANG.Settings.confirmDeleteCousin":   "Remove this cousin relationship?",
 
+  "DHLANG.Search.placeholder": "Search languages, categories or their descriptions…",
+
   "DHLANG.Picker.toggle":              "Formula Helper",
   "DHLANG.Picker.apply":               "Apply",
   "DHLANG.Picker.typeCustom":          "Custom formula",

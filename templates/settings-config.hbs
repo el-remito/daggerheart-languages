@@ -7,6 +7,11 @@
     <p class="hint">{{pointFormulaHint}}</p>
   </div>
 
+  {{!-- Search bar --}}
+  <div class="config-section dh-lang-search-bar">
+    <input type="search" class="dh-lang-search" placeholder="{{localize 'DHLANG.Search.placeholder'}}" />
+  </div>
+
   {{!-- Categories --}}
   <div class="config-section categories-section">
     {{#each config.categories}}
