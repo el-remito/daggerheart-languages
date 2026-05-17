@@ -16,6 +16,26 @@
   <p class="adversary-note">{{localize "DHLANG.Dialog.adversaryFreeNote"}}</p>
   {{/if}}
 
+  {{!-- Acquired languages --}}
+  {{#if acquiredLanguages.length}}
+  <div class="acquired-section">
+    <h3>{{localize "DHLANG.Dialog.acquired"}}</h3>
+    {{#each acquiredLanguages}}
+    <div class="acquired-row">
+      <span class="lang-name">{{this.name}}</span>
+      {{#if ../isGM}}
+      <button
+        type="button"
+        data-action="removeLanguage"
+        data-language-id="{{this.id}}"
+        class="remove-btn"
+      >{{localize "DHLANG.Dialog.remove"}}</button>
+      {{/if}}
+    </div>
+    {{/each}}
+  </div>
+  {{/if}}
+
   {{!-- Available languages by category --}}
   {{#each categories}}
   <details class="lang-category" open>
@@ -52,25 +72,5 @@
   {{else}}
   <p class="no-languages-hint">{{localize "DHLANG.Dialog.noLanguagesConfigured"}}</p>
   {{/each}}
-
-  {{!-- Acquired languages --}}
-  {{#if acquiredLanguages.length}}
-  <div class="acquired-section">
-    <h3>{{localize "DHLANG.Dialog.acquired"}}</h3>
-    {{#each acquiredLanguages}}
-    <div class="acquired-row">
-      <span class="lang-name">{{this.name}}</span>
-      {{#if ../isGM}}
-      <button
-        type="button"
-        data-action="removeLanguage"
-        data-language-id="{{this.id}}"
-        class="remove-btn"
-      >{{localize "DHLANG.Dialog.remove"}}</button>
-      {{/if}}
-    </div>
-    {{/each}}
-  </div>
-  {{/if}}
 
 </div>

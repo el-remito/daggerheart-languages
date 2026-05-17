@@ -387,6 +387,14 @@
   transform: rotate(90deg);
 }
 
+/* Language count badge in category header */
+.dh-settings-config .category-lang-count {
+  font-size:   0.78em;
+  color:       #888;
+  flex-shrink: 0;
+  user-select: none;
+}
+
 .dh-settings-config .category-header input[type="text"] {
   flex:          1;
   background:    transparent;
