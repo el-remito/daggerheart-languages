@@ -80,6 +80,14 @@ export class LanguageDialog extends foundry.applications.api.HandlebarsApplicati
         const requirementFormula = resolveEffectiveRequirement(language, category, requirementWaived);
         const requirementMet = await evaluateRequirement(requirementFormula, this.actor);
 
+        const cousinsInfo = (language.cousins ?? [])
+          .map(c => {
+            const entry = findLanguage(c.languageId, config);
+            return entry ? `${entry.language.name} (${c.discountAmount ?? 0})` : null;
+          })
+          .filter(Boolean);
+        const relatedTooltip = cousinsInfo.length > 0 ? cousinsInfo.join('<br>') : null;
+
         let discountTooltip = null;
         if (cousinApplied) {
           const cousinEntry = findLanguage(cousinApplied.languageId, config);
@@ -112,6 +120,7 @@ export class LanguageDialog extends foundry.applications.api.HandlebarsApplicati
           canAcquire,
           canAfford,
           discountTooltip,
+          relatedTooltip,
         });
       }
       if (languages.length > 0) {

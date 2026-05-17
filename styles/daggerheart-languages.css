@@ -270,6 +270,20 @@
   opacity: 0.55;
 }
 
+/* Related languages ⓘ badge — lists cousin languages and their discounts on hover */
+.dh-languages-dialog .related-langs-info {
+  font-size:   0.82em;
+  color:       rgba(201, 170, 113, 0.5);
+  cursor:      default;
+  user-select: none;
+  transition:  color 0.15s;
+  flex-shrink: 0;
+}
+
+.dh-languages-dialog .related-langs-info:hover {
+  color: #c9aa71;
+}
+
 .dh-languages-dialog .lang-acquired-tag {
   color:     #6dbf6d;
   font-size: 0.9em;
