@@ -83,7 +83,7 @@ export class LanguageDialog extends foundry.applications.api.HandlebarsApplicati
         const cousinsInfo = (language.cousins ?? [])
           .map(c => {
             const entry = findLanguage(c.languageId, config);
-            return entry ? `${entry.language.name} (${c.discountAmount ?? 0})` : null;
+            return entry ? `${entry.language.name} (-${c.discountAmount ?? 0})` : null;
           })
           .filter(Boolean);
         const relatedTooltip = cousinsInfo.length > 0
