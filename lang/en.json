@@ -4,7 +4,7 @@
   "DHLANG.Settings.menuHint":  "Define language categories, costs, and acquisition requirements for your world.",
   "DHLANG.Settings.title":     "Language Configuration",
   "DHLANG.Settings.pointFormula":     "Point Pool Formula",
-  "DHLANG.Settings.pointFormulaHint": "Evaluated against actor data. Must resolve to a positive integer. Available: @traits.agility.value, @traits.strength.value, @traits.finesse.value, @traits.instinct.value, @traits.presence.value, @traits.knowledge.value, @level, @proficiency",
+  "DHLANG.Settings.pointFormulaHint": "Evaluated against actor data. Must resolve to a positive integer. Available: @traits.agility.value, @traits.strength.value, @traits.finesse.value, @traits.instinct.value, @traits.presence.value, @traits.knowledge.value, @level, @proficiency, @tier",
   "DHLANG.Settings.categoryName":          "Category Name",
   "DHLANG.Settings.languageName":          "Language Name",
   "DHLANG.Settings.addCategory":           "Add Category",

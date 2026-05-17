@@ -13,6 +13,7 @@ const MOCK_ACTOR = {
     },
     level:       1,
     proficiency: 1,
+    tier:        1,
   }),
 };
 
