@@ -167,6 +167,9 @@ export class LanguageDialog extends foundry.applications.api.HandlebarsApplicati
     for (const btn of this.element.querySelectorAll('[data-action="removeLanguage"]')) {
       btn.addEventListener('click', this._onRemoveLanguage.bind(this));
     }
+    // Share to chat button
+    const shareBtn = this.element.querySelector('[data-action="shareLanguages"]');
+    if (shareBtn) shareBtn.addEventListener('click', this._onShareLanguages.bind(this));
 
     // Restore collapse state: any category that was open before the re-render stays open.
     for (const d of this.element.querySelectorAll('.lang-category')) {
@@ -230,6 +233,17 @@ export class LanguageDialog extends foundry.applications.api.HandlebarsApplicati
     const acquired = getAcquiredLanguageIds(this.actor);
     await this.actor.setFlag(MODULE_ID, FLAGS.ACQUIRED, [...acquired, languageId]);
     this.render();
+  }
+
+  async _onShareLanguages() {
+    const config = game.settings.get(MODULE_ID, SETTINGS.CONFIG);
+    const names = getAcquiredLanguageIds(this.actor)
+      .map(id => { const f = findLanguage(id, config); return f ? f.language.name : id; });
+    if (!names.length) return;
+    await ChatMessage.create({
+      speaker: ChatMessage.getSpeaker({ actor: this.actor }),
+      content: game.i18n.format('DHLANG.Dialog.chatMessage', { languages: names.join(', ') }),
+    });
   }
 
   async _onRemoveLanguage(event) {

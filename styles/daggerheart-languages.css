@@ -304,6 +304,17 @@
   margin-top:  0.25em;
 }
 
+.dh-languages-dialog .acquired-section-header {
+  display:         flex;
+  align-items:     center;
+  justify-content: space-between;
+  margin-bottom:   0.4em;
+}
+
+.dh-languages-dialog .acquired-section-header h3 {
+  margin: 0;
+}
+
 .dh-languages-dialog .acquired-section h3 {
   color:       #c9aa71;
   font-size:   0.9em;

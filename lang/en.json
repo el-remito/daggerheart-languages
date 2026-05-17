@@ -70,5 +70,7 @@
   "DHLANG.Dialog.adversaryFreeNote":      "Point costs are displayed but not enforced for adversaries.",
   "DHLANG.Dialog.noLanguagesConfigured":  "No languages have been configured. Ask your GM to set up languages in Module Settings.",
   "DHLANG.Dialog.discountReason":         "Discounted because {name} already knows {cousin}",
-  "DHLANG.Dialog.relatedLanguages":       "Related Languages"
+  "DHLANG.Dialog.relatedLanguages":       "Related Languages",
+  "DHLANG.Dialog.shareTooltip":           "Share to chat",
+  "DHLANG.Dialog.chatMessage":            "Known Languages: {languages}"
 }

@@ -27,7 +27,10 @@
   {{!-- Acquired languages --}}
   {{#if acquiredLanguages.length}}
   <div class="acquired-section">
-    <h3>{{localize "DHLANG.Dialog.acquired"}}</h3>
+    <div class="acquired-section-header">
+      <h3>{{localize "DHLANG.Dialog.acquired"}}</h3>
+      <button type="button" data-action="shareLanguages" data-tooltip="{{localize 'DHLANG.Dialog.shareTooltip'}}">📢</button>
+    </div>
     {{#each acquiredLanguages}}
     <div class="acquired-row">
       <span class="lang-name">{{this.name}}</span>
