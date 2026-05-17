@@ -28,6 +28,11 @@
   "DHLANG.Settings.confirmDeleteLanguage": "Delete this language? This cannot be undone until you save.",
   "DHLANG.Settings.confirmDeleteCousin":   "Remove this cousin relationship?",
 
+  "DHLANG.Requirement.hasFeature":      "Must have feature: {value}",
+  "DHLANG.Requirement.hasDomain":       "Must have domain: {value}",
+  "DHLANG.Requirement.hasSpellcasting": "Must have a spellcasting trait",
+  "DHLANG.Requirement.traitAtLeast":    "Must have {trait} {value} or higher",
+
   "DHLANG.Badge.noLanguages":       "This creature speaks no known languages",
   "DHLANG.Badge.speaksLanguages":   "This creature speaks the following languages: {languages}",
   "DHLANG.Badge.pcNoLanguages":     "{name} speaks no known languages",

@@ -1,4 +1,39 @@
 /**
+ * Converts a requirement formula string into a human-readable description.
+ * Keyword-based requirements are translated via i18n; plain math formulas
+ * are returned unchanged.
+ *
+ * @param {string|null|undefined} formula
+ * @returns {string}
+ */
+export function formatRequirement(formula) {
+  if (!formula) return formula ?? '';
+  const req = formula.trim();
+
+  if (req.startsWith('hasFeature:')) {
+    const value = req.slice('hasFeature:'.length).trim();
+    return game.i18n.format('DHLANG.Requirement.hasFeature', { value });
+  }
+  if (req.startsWith('hasDomain:')) {
+    const value = req.slice('hasDomain:'.length).trim();
+    return game.i18n.format('DHLANG.Requirement.hasDomain', { value });
+  }
+  if (req === 'hasSpellcasting') {
+    return game.i18n.localize('DHLANG.Requirement.hasSpellcasting');
+  }
+  if (req.startsWith('traitAtLeast:')) {
+    const parts = req.slice('traitAtLeast:'.length).split(':');
+    const rawTrait = parts[0] ?? '';
+    const trait = rawTrait.charAt(0).toUpperCase() + rawTrait.slice(1).toLowerCase();
+    const value = parts[1] ?? '';
+    return game.i18n.format('DHLANG.Requirement.traitAtLeast', { trait, value });
+  }
+
+  // Plain math formula — return as-is.
+  return formula;
+}
+
+/**
  * Evaluates a formula string against an actor's roll data.
  * Returns an integer, or throws if the result is not a valid integer.
  * @param {string} formula

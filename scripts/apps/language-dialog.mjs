@@ -1,5 +1,5 @@
 import { MODULE_ID, FLAGS, SETTINGS, TEMPLATES } from '../constants.mjs';
-import { evaluateRequirement } from '../utils/formula.mjs';
+import { evaluateRequirement, formatRequirement } from '../utils/formula.mjs';
 import {
   getAcquiredLanguageIds,
   resolveLanguageCost,
@@ -63,7 +63,7 @@ export class LanguageDialog extends foundry.applications.api.HandlebarsApplicati
         const canAcquire = !alreadyAcquired && (isPC ? (canAfford && requirementMet) : true);
 
         const requirementTooltip = (!requirementMet && requirementFormula)
-          ? game.i18n.format('DHLANG.Dialog.requirementUnmet', { requirement: requirementFormula })
+          ? game.i18n.format('DHLANG.Dialog.requirementUnmet', { requirement: formatRequirement(requirementFormula) })
           : '';
 
         languages.push({
