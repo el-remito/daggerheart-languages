@@ -254,6 +254,10 @@
   color: #c9aa71;
 }
 
+.dh-languages-dialog .discount-info.is-acquired {
+  opacity: 0.55;
+}
+
 .dh-languages-dialog .lang-acquired-tag {
   color:     #6dbf6d;
   font-size: 0.9em;
