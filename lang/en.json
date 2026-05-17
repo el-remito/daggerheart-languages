@@ -4,7 +4,7 @@
   "DHLANG.Settings.menuHint":  "Define language categories, costs, and acquisition requirements for your world.",
   "DHLANG.Settings.title":     "Language Configuration",
   "DHLANG.Settings.pointFormula":     "Point Pool Formula",
-  "DHLANG.Settings.pointFormulaHint": "Evaluated against actor data. Must resolve to a positive integer. Available: @traits.agility.value, @traits.strength.value, @traits.finesse.value, @traits.instinct.value, @traits.presence.value, @traits.knowledge.value, @level, @proficiency, @tier",
+  "DHLANG.Settings.pointFormulaHint": "Evaluated against actor data. Must resolve to a positive integer. Available: @traits.agility.value, @traits.strength.value, @traits.finesse.value, @traits.instinct.value, @traits.presence.value, @traits.knowledge.value, @system.levelData.level.current, @prof, @tier",
   "DHLANG.Settings.categoryName":          "Category Name",
   "DHLANG.Settings.languageName":          "Language Name",
   "DHLANG.Settings.addCategory":           "Add Category",
@@ -30,7 +30,7 @@
   "DHLANG.Settings.costRules":             "Cost Rules",
   "DHLANG.Settings.addCostRule":           "Add Cost Rule",
   "DHLANG.Settings.costRuleRequirement":   "Requirement",
-  "DHLANG.Settings.costRuleCost":          "Cost",
+  "DHLANG.Settings.costRuleDiscountAmount": "Discount Amount",
   "DHLANG.Settings.confirmDeleteCostRule": "Remove this cost rule?",
 
   "DHLANG.Search.placeholder": "Search languages, categories or their descriptions…",
@@ -87,7 +87,7 @@
   "DHLANG.Dialog.noLanguagesConfigured":  "No languages have been configured. Ask your GM to set up languages in Module Settings.",
   "DHLANG.Dialog.discountReason":         "Discounted because {name} already knows {cousin}",
   "DHLANG.Dialog.relatedLanguages":       "Related Languages",
-  "DHLANG.Dialog.specialCost":            "Special Cost: {requirement}",
+  "DHLANG.Dialog.specialCost":            "<strong>Special Discount:</strong> {requirement}",
   "DHLANG.Dialog.shareTooltip":           "Share to chat",
   "DHLANG.Dialog.chatMessage":            "Known Languages: {languages}"
 }

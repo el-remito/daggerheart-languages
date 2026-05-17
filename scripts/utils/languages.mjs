@@ -27,32 +27,35 @@ export function findLanguage(languageId, config) {
 }
 
 /**
- * Resolves the effective acquisition cost for a language, accounting for
- * cousin discounts if the actor already knows a cousin language.
+ * Resolves the effective acquisition cost for a language, using a unified
+ * candidate/competition model for both cost rules and cousin discounts.
+ *
+ * All discount sources — the first matching cost rule and all acquired cousin
+ * discounts — are scored as candidates (effectiveCost = max(0, baseCost − discountAmount)).
+ * The candidate with the lowest effective cost wins; discounts do NOT stack.
  *
  * Returns:
  *   effectiveCost     — the cost to use for affordability and acquisition
- *   originalCost      — base cost before any cousin discount
- *   cousinApplied     — the cousin object that supplied the discount, or null
+ *   originalCost      — base cost before any discount
+ *   cousinApplied     — the cousin object that won the contest, or null
  *   requirementWaived — true if the winning cousin waives the requirement
+ *   costRuleApplied   — the cost rule object that won the contest, or null
  *
  * @param {object} language
  * @param {object} category
  * @param {Actor} actor
- * @returns {Promise<{ effectiveCost: number, originalCost: number, cousinApplied: object|null, requirementWaived: boolean }>}
+ * @returns {Promise<{ effectiveCost: number, originalCost: number, cousinApplied: object|null, requirementWaived: boolean, costRuleApplied: object|null }>}
  */
 export async function resolveLanguageCost(language, category, actor) {
-  // Base cost from language override or category default.
-  let originalCost = Number(language.cost ?? category.cost ?? 0);
+  const baseCost = Number(language.cost ?? category.cost ?? 0);
+  const candidates = [];
 
-  // Cost rules: evaluated top-to-bottom; first matching rule overrides the base cost.
-  let costRuleApplied = null;
+  // First matching cost rule enters the candidate pool.
   for (const rule of (language.costRules ?? [])) {
     try {
-      const met = await evaluateRequirement(rule.requirement, actor);
-      if (met) {
-        originalCost    = Number(rule.cost ?? 0);
-        costRuleApplied = rule;
+      if (await evaluateRequirement(rule.requirement, actor)) {
+        const da = await evaluateFormula(String(rule.discountAmount ?? 0), actor);
+        candidates.push({ effectiveCost: Math.max(0, baseCost - da), source: 'rule', rule });
         break;
       }
     } catch (_) {
@@ -60,34 +63,42 @@ export async function resolveLanguageCost(language, category, actor) {
     }
   }
 
+  // All acquired cousin discounts enter the candidate pool.
   const acquiredIds = getAcquiredLanguageIds(actor);
-  const matchingCousins = (language.cousins ?? []).filter(c => acquiredIds.includes(c.languageId));
-
-  if (matchingCousins.length === 0) {
-    return { effectiveCost: originalCost, originalCost, cousinApplied: null, requirementWaived: false, costRuleApplied };
-  }
-
-  // Evaluate discount amount for each matching cousin and derive effective cost; skip errors.
-  const evaluated = [];
-  for (const cousin of matchingCousins) {
+  for (const cousin of (language.cousins ?? []).filter(c => acquiredIds.includes(c.languageId))) {
     try {
-      const discountAmount = await evaluateFormula(String(cousin.discountAmount ?? 0), actor);
-      const discountedCost = Math.max(0, originalCost - discountAmount);
-      evaluated.push({ cousin, discountedCost });
+      const da = await evaluateFormula(String(cousin.discountAmount ?? 0), actor);
+      candidates.push({ effectiveCost: Math.max(0, baseCost - da), source: 'cousin', cousin });
     } catch (_) {
       // Malformed formula — skip this cousin.
     }
   }
 
-  if (evaluated.length === 0) {
-    return { effectiveCost: originalCost, originalCost, cousinApplied: null, requirementWaived: false, costRuleApplied };
+  // No candidates → no discount.
+  if (candidates.length === 0) {
+    return { effectiveCost: baseCost, originalCost: baseCost, cousinApplied: null, requirementWaived: false, costRuleApplied: null };
   }
 
-  // Pick the cousin that yields the lowest (best) discounted cost; ties go to first found.
-  evaluated.sort((a, b) => a.discountedCost - b.discountedCost);
-  const { cousin: cousinApplied, discountedCost: effectiveCost } = evaluated[0];
+  // Best discount wins (lowest effective cost); ties go to first found.
+  candidates.sort((a, b) => a.effectiveCost - b.effectiveCost);
+  const winner = candidates[0];
 
-  return { effectiveCost, originalCost, cousinApplied, requirementWaived: cousinApplied.waiveRequirement ?? false, costRuleApplied };
+  if (winner.source === 'cousin') {
+    return {
+      effectiveCost:     winner.effectiveCost,
+      originalCost:      baseCost,
+      cousinApplied:     winner.cousin,
+      requirementWaived: winner.cousin.waiveRequirement ?? false,
+      costRuleApplied:   null,
+    };
+  }
+  return {
+    effectiveCost:     winner.effectiveCost,
+    originalCost:      baseCost,
+    cousinApplied:     null,
+    requirementWaived: false,
+    costRuleApplied:   winner.rule,
+  };
 }
 
 /**

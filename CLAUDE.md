@@ -1,121 +1,98 @@
-# CLAUDE.md — `daggerheart-languages` Foundry VTT Module
+# PROJECT_REFERENCE.md — daggerheart-languages
 
-## Overview
-
-Build a Foundry VTT module named **`daggerheart-languages`** that adds a purely informational language system to the Daggerheart system (v2.6) running on Foundry v14.
-
-The end goal is simple: a GM can define languages and their acquisition rules; players can see and acquire languages on their character sheets; and anyone looking at a character can quickly see something like:
-
-> **Bob the Fighter** *(spoken languages: Italian, Old Latin, Cabal)*
-
-Languages are **purely informational** — no chat integration, no permission gating, no mechanical effects.
+> **Purpose:** Authoritative reference for Claude sessions working on this module.
+> Reflects the *as-built* state of the codebase, not the original plan.
+> Read this before making any changes. The source-of-truth for intent is `CLAUDE.md`;
+> this document captures implementation details, decisions, and gotchas discovered
+> during development.
 
 ---
 
-## Technical Environment
+## 1. What This Module Does
 
-| Concern | Value |
-|---|---|
-| Foundry version | v14 |
-| Target system | Daggerheart v2.6 |
-| System ID | `daggerheart` (referenced as `CONFIG.DH.id` in system code) |
-| Sheet paradigm | ApplicationV2 + HandlebarsApplicationMixin |
-| Template engine | Handlebars (`.hbs`) |
-| Module ID | `daggerheart-languages` |
-| Flag namespace | `daggerheart-languages` |
+A Foundry VTT v14 module for the Daggerheart system that adds a **purely informational language system**:
 
-### Key System Observations (verified from source references)
-
-- The Daggerheart system uses `data-action` attributes for ApplicationV2 event delegation
-- Actor data is referenced as `document.system.*` in templates (not `actor.*`)
-- PC actor type string: `character` — sheet class: `CharacterSheet extends DHBaseActorSheet`
-- Adversary (NPC) actor type string: `adversary`
-- **Both PC and adversary sheet headers share the same structure:** a `.name-row` div containing `h1.actor-name` — badge injection logic is identical for both
-- PC traits available for formulas: `agility`, `strength`, `finesse`, `instinct`, `presence`, `knowledge`
-- `actor.getRollData()` exposes `@traits.<name>.value`, `@level`, `@proficiency`
-
-**Do not modify any system files.** All integration is done via hooks and DOM injection.
+- GMs define language **categories** (with a default cost and optional requirement), and **languages** within each category (with optional cost/requirement overrides and cousin relationships).
+- PC actors have a **point pool** (formula-driven) for acquiring languages; adversaries acquire for free.
+- A **badge icon** injected into every actor sheet header shows acquired languages on hover and opens an acquisition dialog on click.
+- All data lives in `game.settings` (world config) and actor flags. No system files are modified.
 
 ---
 
-## Repository Reference Files
-
-Read these before writing any code that touches actor data or sheet rendering. They are located in `_references/`:
-
-| File | What it answers |
-|---|---|
-| `_references/character-sheet.mjs` | Sheet class, all registered `data-action` names — avoid conflicts |
-| `_references/character-data.mjs` | PC data model, schema fields, `getRollData()` — formula paths |
-| `_references/character-header.hbs` | PC sheet header — badge injection point (`.name-row > h1.actor-name`) |
-| `_references/adversary-header.hbs` | Adversary sheet header — identical `.name-row` structure to PC |
-
----
-
-## File Structure
+## 2. File Structure & Roles
 
 ```
 daggerheart-languages/
-├── CLAUDE.md
-├── module.json
-├── daggerheart-languages.mjs           # Entry point: imports & registers all hooks
-├── _references/                        # System source files for context only — do not modify
-│   ├── character-sheet.mjs
-│   ├── character-data.mjs
-│   ├── character-header.hbs
-│   └── adversary-header.hbs
+├── module.json                          # Manifest: id, esmodules, styles, lang
+├── daggerheart-languages.mjs            # Entry point: init hook, renderActorSheetV2 hook
 ├── scripts/
-│   ├── constants.mjs                   # Module ID, flag keys, setting keys, defaults
-│   ├── settings.mjs                    # game.settings registration
-│   ├── hooks.mjs                       # All Hooks.on() declarations
+│   ├── constants.mjs                    # MODULE_ID, FLAGS, SETTINGS, ACTOR_TYPES, TEMPLATES
+│   ├── settings.mjs                     # game.settings.register + registerMenu
+│   ├── hooks.mjs                        # updateActor re-render hook
 │   ├── utils/
-│   │   ├── formula.mjs                 # Roll API formula evaluation
-│   │   └── languages.mjs              # Helpers: get acquired, resolve cost, check requirements
+│   │   ├── formula.mjs                  # evaluateFormula(), evaluateRequirement()
+│   │   └── languages.mjs               # getAcquiredLanguageIds(), findLanguage(),
+│   │                                   #   resolveLanguageCost(), resolveEffectiveRequirement(),
+│   │                                   #   calculatePointPool()
 │   ├── apps/
-│   │   ├── language-dialog.mjs         # ApplicationV2: actor language picker dialog
-│   │   └── settings-config.mjs        # ApplicationV2: GM world config UI
+│   │   ├── language-dialog.mjs          # LanguageDialog — player-facing acquisition UI
+│   │   └── settings-config.mjs         # LanguageSettingsConfig — GM world config UI
 │   └── badge/
-│       └── badge.mjs                  # DOM injection: renders badge into actor sheet header
+│       └── badge.mjs                   # injectLanguageBadge() — DOM injection
 ├── templates/
 │   ├── language-dialog.hbs
 │   ├── settings-config.hbs
-│   └── badge-tooltip.hbs
+│   └── badge-tooltip.hbs               # Stub — unused; data-tooltip used instead
 ├── styles/
 │   └── daggerheart-languages.css
 └── lang/
-    └── en.json
+    └── en.json                          # 48 localisation keys
 ```
 
 ---
 
-## Data Architecture
-
-### 1. World Configuration (GM Settings)
-
-Stored as a single world-scoped `game.settings` entry. Only GMs can write to it.
-
-**Setting key:** `languageConfig`
+## 3. Constants (`scripts/constants.mjs`)
 
 ```js
-// Full shape of the world config object
+MODULE_ID  = 'daggerheart-languages'
+FLAGS      = { ACQUIRED: 'acquiredLanguages' }
+SETTINGS   = { CONFIG: 'languageConfig', MENU: 'languageConfigMenu' }
+ACTOR_TYPES = { PC: 'character', ADVERSARY: 'adversary' }
+TEMPLATES  = {
+  LANGUAGE_DIALOG: 'modules/daggerheart-languages/templates/language-dialog.hbs',
+  SETTINGS_CONFIG: 'modules/daggerheart-languages/templates/settings-config.hbs',
+  BADGE_TOOLTIP:   'modules/daggerheart-languages/templates/badge-tooltip.hbs',
+}
+```
+
+---
+
+## 4. Data Schemas
+
+### 4a. World Config (`game.settings.get(MODULE_ID, SETTINGS.CONFIG)`)
+
+```js
 {
-  pointFormula: "2 + floor(@traits.knowledge.value / 2)", // string, evaluated via Roll API
+  pointFormula: "2",          // string — Roll formula evaluated per actor
   categories: [
     {
-      id: "common",           // string, unique, generated via foundry.utils.randomID()
-      name: "Common Tongues", // string
-      cost: 1,                // number or formula string — category default cost
-      requirement: null,      // formula string or null — category default requirement
+      id:          string,    // foundry.utils.randomID()
+      name:        string,
+      cost:        number|string,   // category default cost (formula or integer)
+      requirement: string|null,     // formula or null
+      description: string|null,     // optional display text (added post-plan)
       languages: [
         {
-          id: "elvish",             // string, unique, generated via foundry.utils.randomID()
-          name: "Elvish",           // string
-          cost: null,               // number, formula string, or null (null = use category default)
-          requirement: null,        // formula string or null (null = use category default)
-          cousins: [                // array, may be empty
+          id:          string,      // foundry.utils.randomID()
+          name:        string,
+          cost:        number|string|null,  // null = use category default
+          requirement: string|null,         // null = use category default
+          description: string|null,         // optional display text (added post-plan)
+          cousins: [
             {
-              languageId: "old-elvish",   // id of another language in the world config
-              discountedCost: 0,          // number or formula string — cost if actor knows this cousin
-              waiveRequirement: true      // boolean
+              languageId:         string,   // ID of another language in config
+              discountedCost:     number|string,  // formula or integer
+              waiveRequirement:   boolean,
             }
           ]
         }
@@ -125,380 +102,266 @@ Stored as a single world-scoped `game.settings` entry. Only GMs can write to it.
 }
 ```
 
-**Registration in `settings.mjs`:**
+> **Note:** `description` on both categories and languages was not in the original CLAUDE.md spec — it was added during Step 10b. All existing data without it treats it as `null`.
+
+### 4b. Per-Actor Flag
 
 ```js
-game.settings.register('daggerheart-languages', 'languageConfig', {
-  name: 'Language Configuration',
-  scope: 'world',
-  config: false,       // managed via custom UI, not the default settings panel
-  type: Object,
-  default: { pointFormula: '2', categories: [] }
-});
-
-game.settings.registerMenu('daggerheart-languages', 'languageConfigMenu', {
-  name: 'Configure Languages',
-  label: 'Open Language Config',
-  icon: 'fas fa-language',
-  type: LanguageSettingsConfig,  // the ApplicationV2 class
-  restricted: true               // GM only
-});
+actor.getFlag('daggerheart-languages', 'acquiredLanguages')
+// → string[]  (array of language IDs)
+// Returns [] if not set (never null/undefined in practice after first acquire)
 ```
 
 ---
 
-### 2. Per-Actor Data (Actor Flags)
+## 5. Key Technical Discoveries (not in CLAUDE.md)
 
-Languages acquired by an actor are stored in actor flags. This never touches system data.
-
+### Hook name for sheet render
+`renderActorSheet` **never fires** in Foundry v14 for Daggerheart. The correct hook is:
 ```js
-// Reading
-const acquired = actor.getFlag('daggerheart-languages', 'acquiredLanguages') ?? [];
-// acquired is an array of language IDs: ["elvish", "old-latin"]
-
-// Acquiring a language (owner or GM)
-await actor.setFlag('daggerheart-languages', 'acquiredLanguages', [...acquired, newLanguageId]);
-
-// Removing a language (GM only)
-await actor.setFlag('daggerheart-languages', 'acquiredLanguages', acquired.filter(id => id !== languageId));
+Hooks.on('renderActorSheetV2', (app, html, _data) => { ... })
 ```
+This fires for both `CharacterSheet` and `AdversarySheet` (confirmed via live diagnostic). The actor is `app.document`, **not** `app.actor`.
 
----
-
-## Formula Evaluation (`scripts/utils/formula.mjs`)
-
-Both the point pool formula and language costs/requirements are evaluated using Foundry's `Roll` API against the actor's roll data.
-
+### ApplicationV2 open windows
+In `hooks.mjs`, open sheets are found via `ui.windows` using `w.document?.id` (not `w.actor?.id`):
 ```js
-/**
- * Evaluates a formula string against an actor's roll data.
- * Returns an integer, or throws if the result is not a valid integer.
- */
-export async function evaluateFormula(formula, actor) {
-  const rollData = actor.getRollData();
-  const roll = new Roll(String(formula), rollData);
-  await roll.evaluate();
-  const result = roll.total;
-  if (!Number.isInteger(result)) throw new Error(`Formula "${formula}" did not evaluate to an integer.`);
-  return result;
-}
-
-/**
- * Evaluates a requirement expression.
- * Requirements are formulas that evaluate to 0 (fail) or any non-zero integer (pass).
- * If requirement is null or undefined, always returns true (no requirement).
- */
-export async function evaluateRequirement(requirement, actor) {
-  if (!requirement) return true;
-  const result = await evaluateFormula(requirement, actor);
-  return result !== 0;
+for (const w of Object.values(ui.windows)) {
+  if (w.document?.id === actor.id) w.render();
 }
 ```
 
-**Available roll data keys for formulas (from `DhCharacter.getRollData()`, verified in `_references/character-data.mjs`):**
+### Fixed window height required for internal scroll
+`position: { height: 'auto' }` causes the *page* to scroll rather than the window's content area. The settings config uses `height: 650` (fixed integer) so `.window-content` scrolls internally.
 
-- `@traits.agility.value`
-- `@traits.strength.value`
-- `@traits.finesse.value`
-- `@traits.instinct.value`
-- `@traits.presence.value`
-- `@traits.knowledge.value`
-- `@level`
-- `@proficiency`
+### Handlebars `eq` helper unavailable
+The `{{#if (eq a b)}}` subexpression helper is **not guaranteed** in Foundry v14's Handlebars environment. All comparisons are pre-computed as booleans in `_prepareContext` and passed to the template. Example: cousin `_options` carry `selected: boolean`.
 
----
+### `<summary>` pseudo-elements unreliable
+`::before` on `<summary>` is overridden by the browser's native `::marker` in Chrome. The codebase uses explicit `<span class="dh-collapse-arrow">▶</span>` DOM elements inside each `<summary>` instead.
 
-## Language Resolution Logic (`scripts/utils/languages.mjs`)
+### `<select>` appearance
+Native `<select>` ignores `background-color` when `appearance: auto`. The cousin dropdowns use `appearance: none; -webkit-appearance: none; background: #1e1a27` (solid, not transparent) to override OS rendering.
 
-### Resolving effective cost for a language
+### Cost values are strings from form inputs
+All cost/requirement values in the config come from `<input type="text">` elements and are stored as strings. **Always coerce with `Number()` before arithmetic.** `resolveLanguageCost` and `calculatePointPool` do this internally.
 
-```
-1. Start with the language's own cost if set, else use the category default cost
-2. Check if the actor has any cousin languages (from language.cousins[])
-3. For each cousin whose languageId is in actor's acquiredLanguages:
-   - Evaluate that cousin's discountedCost formula
-4. If any cousins match: apply the one with the HIGHEST discount
-   (highest discount = lowest resulting discountedCost value)
-   If two cousins produce the same discountedCost, use the first one found
-5. If waiveRequirement is true on the winning cousin: requirement is waived
-6. Return { effectiveCost, requirementWaived }
-```
-
-### Resolving effective requirement
-
-```
-1. If requirement was waived by cousin logic: return null (no requirement)
-2. Use language's own requirement if set, else use category default requirement
-3. Return the requirement formula string (or null)
-```
-
-### Point pool for a PC
-
-```
-1. Get pointFormula from world config
-2. Evaluate against actor.getRollData()
-3. Sum the current effective base costs of all acquired languages
-   (base cost = category or language cost, before any cousin discount;
-    cousin discounts are display/acquisition aids only, not stored separately)
-4. Return { total, spent, remaining }
-```
-
-**Important:** The module stores only language IDs in actor flags — not the cost paid at time of acquisition. Spent points are always recalculated from current costs. If a GM changes a language's cost after acquisition, the displayed spent total updates accordingly. This is a deliberate tradeoff: simpler storage, predictable recalculation.
+### Collapse state is lost on re-render
+`LanguageSettingsConfig` overrides `render()` to call `_captureCollapseState()` before the DOM is replaced, then restores the state in `_onRender`. Category/language `<details>` state is keyed by `data-category-id` / `data-language-id` (not array index).
 
 ---
 
-## Badge System (`scripts/badge/badge.mjs`)
+## 6. Business Logic
 
-### Injection Strategy
+### Cost Resolution (`resolveLanguageCost`)
+1. `originalCost = Number(language.cost ?? category.cost ?? 0)`
+2. Find all cousins whose `languageId` is in actor's acquired IDs
+3. Evaluate `discountedCost` formula for each; skip errors
+4. Pick cousin with **lowest** discounted cost (= best discount); ties: first found
+5. Return `{ effectiveCost, originalCost, cousinApplied, requirementWaived }`
 
-Both the PC (`character`) and adversary sheet headers use the same structure:
+### Point Pool (`calculatePointPool`)
+- `total` = `evaluateFormula(config.pointFormula, actor)`
+- `spent` = sum of `effectiveCost` (from `resolveLanguageCost`) for each acquired language
+- **Cousin discounts ARE counted** in spent (overrides original CLAUDE.md spec, per user direction)
+- If a language ID is in actor flags but not in config, it is skipped silently
 
-```html
-<div class="name-row">
-  <h1 class="actor-name ...">...</h1>
-  <!-- badge injected here -->
-</div>
-```
+### Requirement Resolution (`resolveEffectiveRequirement`)
+- Returns `null` if `requirementWaived` (from cousin)
+- Otherwise: `language.requirement ?? category.requirement ?? null`
 
-Use `Hooks.on('renderActorSheet', ...)` to inject after every sheet render. This fires for all actor types.
-
-```js
-Hooks.on('renderActorSheet', (app, html, data) => {
-  const actor = app.actor;
-  if (!['character', 'adversary'].includes(actor.type)) return;
-  injectLanguageBadge(app, html, actor);
-});
-```
-
-### Badge Injection (identical for PC and adversary)
-
-```js
-const nameRow = html.querySelector('.name-row');
-if (!nameRow) return;
-const badge = buildBadgeElement(actor);
-nameRow.querySelector('h1.actor-name').insertAdjacentElement('afterend', badge);
-```
-
-### Badge Element
-
-```html
-<span class="dh-lang-badge" data-actor-id="{actorId}">
-  <i class="fas fa-language"></i>
-</span>
-```
-
-- **Hover:** shows a tooltip listing acquired language names (comma-separated). If none: "No languages known".
-- **Click:** opens `LanguageDialog` for this actor.
-- Use Foundry's native `data-tooltip` attribute for the tooltip where possible.
-
----
-
-## Language Dialog (`scripts/apps/language-dialog.mjs`)
-
-### Class
-
-```js
-class LanguageDialog extends foundry.applications.api.HandlebarsApplicationMixin(
-  foundry.applications.api.ApplicationV2
-) { ... }
-```
-
-### Behaviour by Actor Type
-
-| Feature | PC (`character`) | Adversary (`adversary`) |
+### Acquisition Rules
+| | PC (`character`) | Adversary (`adversary`) |
 |---|---|---|
-| Point pool display | ✅ Shown (spent / total) | ✅ Shown (informational only) |
-| Cost displayed | ✅ Yes | ✅ Yes |
-| Cost enforced | ✅ Yes | ❌ No — free acquisition |
-| Requirement displayed | ✅ Greyed out if unmet, tooltip explains | ✅ Same display |
-| Requirement enforced | ✅ Yes (unless waived by cousin) | ❌ No |
-| Acquire button | Active if affordable + requirements met | Always active |
-| Confirmation on acquire | ✅ Required | ✅ Required |
-| Remove language | GM only | GM only |
-
-### Layout
-
-```
-┌──────────────────────────────────────────────────┐
-│  Languages — Bob the Fighter                     │
-│  Points: 2 / 4                                   │
-├──────────────────────────────────────────────────┤
-│  ▼ Common Tongues                                │
-│    Elvish          Cost: 1          [Acquire]    │
-│    Old Latin       Cost: 1          [Acquire]    │
-│    Cabal ░░░░      Cost: 2          [Acquire]  ← greyed, tooltip: unmet requirement │
-│  ▼ Arcane                                        │
-│    Runic           Cost: ~~2~~ → 1  [Acquire]  ← cousin discount active │
-├──────────────────────────────────────────────────┤
-│  Acquired Languages                              │
-│    Italian    [×] ← GM only                      │
-│    Old Latin  [×] ← GM only                      │
-└──────────────────────────────────────────────────┘
-```
-
-### Cousin Discount Display
-
-When a cousin discount is active, show both the original and discounted cost:
-
-```
-Runic    Cost: ~~2~~ → 1  (cousin discount)   [Acquire]
-```
-
-### Confirmation Dialog (on Acquire)
-
-```js
-const confirmed = await foundry.applications.api.DialogV2.confirm({
-  window: { title: game.i18n.localize('DHLANG.Dialog.confirmAcquireTitle') },
-  content: `<p>${game.i18n.format('DHLANG.Dialog.confirmAcquireContent', {
-    name: language.name,
-    cost: effectiveCost
-  })}</p>`
-});
-if (!confirmed) return;
-```
+| Cost enforced | Yes | No |
+| Requirement enforced | Yes (unless cousin waives) | No |
+| Confirmation dialog | Yes | No |
+| Remove button visible | GM only | GM only |
+| Point bar shown | Yes | No |
 
 ---
 
-## GM Settings Config UI (`scripts/apps/settings-config.mjs`)
+## 7. Settings Config (`LanguageSettingsConfig`) — Important Patterns
 
-### Class
-
-```js
-class LanguageSettingsConfig extends foundry.applications.api.HandlebarsApplicationMixin(
-  foundry.applications.api.ApplicationV2
-) { ... }
-```
-
-### Features
-
-- Set the global point pool formula (with a descriptive placeholder showing available variables)
-- Add / remove / rename categories
-- Set category default cost and default requirement
-- Add / remove / rename languages within a category
-- Override cost and requirement per language
-- Manage cousin relationships per language:
-  - Select a cousin language from a dropdown of all languages defined in the world config
-  - Set discounted cost (formula or integer)
-  - Toggle waive requirement
-- Save writes the full config object back to `game.settings`
-
-### Validation (before saving)
-
-- Point pool formula: must evaluate to a positive integer
-- Language costs: must evaluate to a non-negative integer
-- Requirements: must evaluate to 0 or 1, or be null/empty
-- Cousin discounted costs: must evaluate to a non-negative integer
-- Show inline error messages if validation fails; do not save until resolved
-- Test formulas against a minimal mock roll data object (zeroed traits, level 1)
+- `#config` is a **deep clone** of saved settings. Mutations accumulate here; saved only on explicit Save.
+- `_prepareContext` sorts categories and languages **in-place** on `#config` (safe because it's a clone).
+- Cousin `_options` are built **per-cousin** with a pre-computed `selected` boolean and filtered to exclude: the language itself + all other cousins' currently selected languages.
+- All `data-field` inputs sync to `#config` via `_onRender` event listeners keyed by `data-category-id` / `data-language-id` / `data-cousin-index`.
+- Cousin index (`data-cousin-index`) maps directly to array position — cousin sort must happen **before** building `_options` so indices are consistent.
+- Validation uses `MOCK_ACTOR` (all traits 0, level 1, proficiency 1) to test formulas before save.
 
 ---
 
-## Hooks (`scripts/hooks.mjs`)
+## 8. Badge (`badge.mjs`) — Important Patterns
 
-```js
-// Badge injection on sheet render
-Hooks.on('renderActorSheet', (app, html, data) => {
-  const actor = app.actor;
-  if (!['character', 'adversary'].includes(actor.type)) return;
-  injectLanguageBadge(app, html, actor);
-});
-
-// Re-render open sheets when actor flags change (language acquired or removed)
-Hooks.on('updateActor', (actor, changes, options, userId) => {
-  if (!changes.flags?.['daggerheart-languages']) return;
-  Object.values(ui.windows)
-    .filter(w => w.actor?.id === actor.id)
-    .forEach(w => w.render());
-});
-```
+- `injectLanguageBadge` is **async**. The hook callback in `daggerheart-languages.mjs` does not await it (floating promise — normal for Foundry hooks).
+- Badge is inserted **synchronously** first; glow class is added **after** `calculatePointPool` resolves.
+- Tooltip phrasing branches on `actor.type`:
+  - PC: `DHLANG.Badge.pcSpeaksLanguages` / `DHLANG.Badge.pcNoLanguages` (includes actor name)
+  - Adversary: `DHLANG.Badge.speaksLanguages` / `DHLANG.Badge.noLanguages`
+- Glow state classes (PC only, applied async):
+  - `.dh-lang-badge--unspent` — `pool.remaining > 0` — amber pulse
+  - `.dh-lang-badge--overspent` — `pool.spent > pool.total` — red pulse
+  - Neither class — exactly spent or point pool evaluation failed
 
 ---
 
-## Permissions
+## 9. Localisation Keys (`lang/en.json`)
 
-| Action | Player (owner) | Player (non-owner) | GM |
-|---|---|---|---|
-| View badge | ✅ | ✅ | ✅ |
-| Hover tooltip | ✅ | ✅ | ✅ |
-| Open dialog | ✅ | ❌ | ✅ |
-| Acquire language (PC, affordable + requirements met) | ✅ | ❌ | ✅ |
-| Acquire language (adversary) | ❌ | ❌ | ✅ |
-| Remove language | ❌ | ❌ | ✅ |
-| Edit world language config | ❌ | ❌ | ✅ |
+### Settings
+| Key | Purpose |
+|---|---|
+| `DHLANG.Settings.menuName` | Module settings button label |
+| `DHLANG.Settings.menuLabel` | Button text |
+| `DHLANG.Settings.menuHint` | Button hint text |
+| `DHLANG.Settings.title` | Window title |
+| `DHLANG.Settings.pointFormula` | Point formula field label |
+| `DHLANG.Settings.pointFormulaHint` | Point formula hint text |
+| `DHLANG.Settings.categoryName` | Category name input placeholder |
+| `DHLANG.Settings.languageName` | Language name input placeholder |
+| `DHLANG.Settings.addCategory` | Add category button |
+| `DHLANG.Settings.addLanguage` | Add language button |
+| `DHLANG.Settings.addCousin` | Add cousin button |
+| `DHLANG.Settings.defaultCost` | Category default cost label |
+| `DHLANG.Settings.defaultRequirement` | Category default requirement label |
+| `DHLANG.Settings.costOverride` | Language cost override label |
+| `DHLANG.Settings.requirementOverride` | Language requirement override label |
+| `DHLANG.Settings.categoryDescription` | Category description textarea label |
+| `DHLANG.Settings.languageDescription` | Language description textarea label |
+| `DHLANG.Settings.cousins` | Cousin section heading |
+| `DHLANG.Settings.cousinLanguage` | Cousin dropdown placeholder |
+| `DHLANG.Settings.cousinDiscountedCost` | Cousin discounted cost label |
+| `DHLANG.Settings.cousinWaiveRequirement` | Cousin waive requirement checkbox label |
+| `DHLANG.Settings.validationError` | Formula validation error (`{error}`) |
+| `DHLANG.Settings.save` | Save button |
+| `DHLANG.Settings.cancel` | Cancel button |
+| `DHLANG.Settings.confirmDeleteTitle` | Deletion confirm dialog title |
+| `DHLANG.Settings.confirmDeleteCategory` | Category deletion confirm body |
+| `DHLANG.Settings.confirmDeleteLanguage` | Language deletion confirm body |
+| `DHLANG.Settings.confirmDeleteCousin` | Cousin deletion confirm body |
 
-Use `actor.isOwner` for ownership checks and `game.user.isGM` for GM-only UI elements.
+### Badge
+| Key | Purpose |
+|---|---|
+| `DHLANG.Badge.noLanguages` | Adversary — no languages tooltip |
+| `DHLANG.Badge.speaksLanguages` | Adversary — has languages tooltip (`{languages}`) |
+| `DHLANG.Badge.pcNoLanguages` | PC — no languages tooltip (`{name}`) |
+| `DHLANG.Badge.pcSpeaksLanguages` | PC — has languages tooltip (`{name}`, `{languages}`) |
 
----
-
-## Localisation (`lang/en.json`)
-
-All user-facing strings must use localisation keys via `game.i18n.localize()` or `game.i18n.format()`.
-
-```json
-{
-  "DHLANG.Badge.noLanguages": "No languages known",
-  "DHLANG.Dialog.title": "Languages — {name}",
-  "DHLANG.Dialog.points": "Points: {spent} / {total}",
-  "DHLANG.Dialog.acquire": "Acquire",
-  "DHLANG.Dialog.acquired": "Acquired Languages",
-  "DHLANG.Dialog.remove": "Remove",
-  "DHLANG.Dialog.cost": "Cost",
-  "DHLANG.Dialog.cousinDiscount": "Cousin discount applied",
-  "DHLANG.Dialog.requirementUnmet": "Requirement not met: {requirement}",
-  "DHLANG.Dialog.confirmAcquireTitle": "Acquire Language",
-  "DHLANG.Dialog.confirmAcquireContent": "Acquire {name} for {cost} point(s)? This cannot be undone without GM intervention.",
-  "DHLANG.Dialog.adversaryFreeNote": "Point costs are displayed but not enforced for adversaries.",
-  "DHLANG.Settings.title": "Language Configuration",
-  "DHLANG.Settings.pointFormula": "Point Pool Formula",
-  "DHLANG.Settings.pointFormulaHint": "Evaluated against actor data. Must resolve to a positive integer. Available variables: @traits.agility.value, @traits.strength.value, @traits.finesse.value, @traits.instinct.value, @traits.presence.value, @traits.knowledge.value, @level, @proficiency",
-  "DHLANG.Settings.addCategory": "Add Category",
-  "DHLANG.Settings.addLanguage": "Add Language",
-  "DHLANG.Settings.addCousin": "Add Cousin",
-  "DHLANG.Settings.defaultCost": "Default Cost",
-  "DHLANG.Settings.defaultRequirement": "Default Requirement (optional)",
-  "DHLANG.Settings.costOverride": "Cost Override (optional)",
-  "DHLANG.Settings.requirementOverride": "Requirement Override (optional)",
-  "DHLANG.Settings.cousins": "Cousin Languages",
-  "DHLANG.Settings.cousinLanguage": "Cousin Language",
-  "DHLANG.Settings.cousinDiscountedCost": "Discounted Cost",
-  "DHLANG.Settings.cousinWaiveRequirement": "Waive Requirement",
-  "DHLANG.Settings.validationError": "Formula validation failed: {error}",
-  "DHLANG.Settings.save": "Save",
-  "DHLANG.Settings.cancel": "Cancel"
-}
-```
-
----
-
-## Build Order
-
-Implement in this order. Each step should be independently testable before moving to the next.
-
-1. **`module.json`** — declare the module, `esmodules` entry point, styles, minimum Foundry and system versions
-2. **`constants.mjs`** — all magic strings in one place (module ID, flag keys, setting keys, actor types)
-3. **`settings.mjs`** — register settings and menu; verify it appears in the Foundry settings panel
-4. **`formula.mjs`** — `evaluateFormula()` and `evaluateRequirement()`; test in browser console against a live actor
-5. **`languages.mjs`** — all resolution helpers (effective cost, cousin logic, point pool); test in console
-6. **`badge.mjs`** — inject static badge into both PC and adversary sheets; verify positioning in both
-7. **`badge-tooltip.hbs`** + hover logic — wire up acquired language tooltip on the badge
-8. **`language-dialog.mjs`** + **`language-dialog.hbs`** — build dialog; PC logic first, then adversary differences
-9. **`settings-config.mjs`** + **`settings-config.hbs`** — GM config UI with validation
-10. **`hooks.mjs`** — wire up the `updateActor` re-render hook
-11. **`en.json`** — verify all strings are localised throughout every file
-12. **`daggerheart-languages.css`** — final styling pass; match Daggerheart visual conventions
+### Dialog
+| Key | Purpose |
+|---|---|
+| `DHLANG.Dialog.title` | Window title (`{name}`) |
+| `DHLANG.Dialog.points` | Point bar label |
+| `DHLANG.Dialog.cost` | Cost label |
+| `DHLANG.Dialog.acquire` | Acquire button |
+| `DHLANG.Dialog.acquired` | Acquired languages section heading |
+| `DHLANG.Dialog.remove` | Remove button (GM) |
+| `DHLANG.Dialog.cousinDiscount` | Cousin discount note |
+| `DHLANG.Dialog.requirementUnmet` | Requirement tooltip (`{requirement}`) |
+| `DHLANG.Dialog.confirmAcquireTitle` | Acquisition confirm title |
+| `DHLANG.Dialog.confirmAcquireContent` | Acquisition confirm body (`{name}`, `{cost}`) |
+| `DHLANG.Dialog.adversaryFreeNote` | Adversary disclaimer note |
+| `DHLANG.Dialog.noLanguagesConfigured` | Empty state hint |
 
 ---
 
-## Constraints & Conventions
+## 10. CSS Class Inventory
 
-- **Never modify system files.** No edits to anything under `systems/daggerheart/`. The `_references/` folder is read-only context.
-- **No hardcoded user-facing strings** — everything goes through `game.i18n.localize()` or `game.i18n.format()`.
-- **All new UIs use `ApplicationV2`** + `HandlebarsApplicationMixin`. Do not use legacy `Application` or `FormApplication`.
-- **Formula evaluation is always async** — use `await evaluateFormula()` everywhere it is called.
-- **Cousin discount resolution:** if multiple cousins apply, pick the one with the lowest `discountedCost` value (= highest discount). On a tie, use the first one found.
-- **Spent points** are recalculated as the sum of current base costs of all acquired language IDs. Cousin discounts are not persisted — they are display and acquisition-time helpers only.
-- **Adversary acquisition** ignores cost and requirements entirely. The dialog still displays both for informational purposes.
-- **GM removal** requires no confirmation dialog — a single GM action removes the language immediately.
-- Use `foundry.utils.randomID()` for all generated IDs (categories and languages).
-- Use `foundry.utils.mergeObject()` for config updates.
-- Check `actor.isOwner` for sheet interaction guards and `game.user.isGM` for GM-only UI elements.
+### Badge
+| Class | Element | Purpose |
+|---|---|---|
+| `.dh-lang-badge` | `<span>` | Base badge — inline-flex, gold icon, next to actor name |
+| `.dh-lang-badge--unspent` | `<span>` | Amber pulse glow — PC has unspent points |
+| `.dh-lang-badge--overspent` | `<span>` | Red pulse glow — PC has overspent points |
+
+### Language Dialog
+| Class | Element | Purpose |
+|---|---|---|
+| `.dh-languages-dialog` | root | Dialog container |
+| `.point-bar` | `<div>` | Point pool row (flex) |
+| `.point-track` | `<div>` | Progress bar track |
+| `.point-fill` | `<div>` | Progress bar fill (amber) |
+| `.point-fill.overspent` | `<div>` | Progress bar fill (red) |
+| `.point-label` | `<span>` | "Points" label |
+| `.point-values` | `<span>` | "X / Y" text |
+| `.adversary-note` | `<p>` | Adversary disclaimer |
+| `.lang-category` | `<details>` | Collapsible category |
+| `.lang-category-name` | `<summary>` | Category header |
+| `.lang-category-description` | `<p>` | Category description (italic) |
+| `.lang-row` | `<div>` | Single language row |
+| `.lang-row.unaffordable` | | Greyed out — cannot afford |
+| `.lang-row.unmet-requirement` | | Greyed out — requirement not met |
+| `.lang-name` | `<span>` | Language name |
+| `.lang-description` | `<p>` | Language description (italic) |
+| `.lang-actions` | `<div>` | Cost + button flex container |
+| `.lang-cost` | `<span>` | Cost display |
+| `.lang-acquired-tag` | `<span>` | ✓ checkmark (already acquired) |
+| `.acquired-section` | `<div>` | Acquired languages section |
+| `.acquired-row` | `<div>` | Single acquired language row |
+
+### Settings Config
+| Class | Element | Purpose |
+|---|---|---|
+| `.dh-settings-config` | root | Settings container |
+| `.config-section` | `<div>` | Generic section wrapper |
+| `.formula-section` | `<div>` | Point formula section |
+| `.categories-section` | `<div>` | All categories wrapper |
+| `.config-category` | `<details>` | Collapsible category block |
+| `.category-header` | `<summary>` | Category summary row |
+| `.dh-collapse-arrow` | `<span>` | ▶ arrow (rotates 90° when open) |
+| `.category-defaults` | `<div>` | Category cost/requirement/desc fields |
+| `.config-language` | `<details>` | Collapsible language block |
+| `.language-header` | `<summary>` | Language summary row |
+| `.language-fields` | `<div>` | Language cost/requirement/desc fields |
+| `.cousin-section` | `<div>` | Cousin relationships for a language |
+| `.cousin-row` | `<div>` | Single cousin row |
+| `.cousin-cost` | `<label>` | Cousin discounted cost label |
+| `.cousin-waive` | `<label>` | Cousin waive-requirement checkbox |
+| `.remove-btn.danger` | `<button>` | Red delete button |
+| `.add-btn` | `<button>` | Add item button |
+| `.category-add-btn` | `<button>` | Add category button |
+| `.config-footer` | `<div>` | Save/Cancel footer |
+| `.save-btn` | `<button>` | Save button |
+| `.cancel-btn` | `<button>` | Cancel button |
+
+---
+
+## 11. Adding New Features — Checklist
+
+When extending this module, follow these patterns:
+
+**Adding a new field to the language or category schema:**
+1. Seed the default in `_addLanguage()` / `_addCategory()` in `settings-config.mjs`
+2. Add a `<textarea>` or `<input>` to `templates/settings-config.hbs`
+3. Wire up the sync listener in `_onRender` in `settings-config.mjs`
+4. Pass the value through in `_prepareContext` of `language-dialog.mjs`
+5. Render it in `templates/language-dialog.hbs`
+6. Add the i18n key to `lang/en.json`
+7. Add CSS if needed
+
+**Adding a new action button:**
+1. Check `CLAUDE.md` §"data-action names already registered" — do not reuse system names
+2. Add `data-action="yourAction"` to the HBS template button
+3. Wire up the listener in `_onRender` via `el.querySelector('[data-action="yourAction"]')`
+
+**Making a formula-based calculation:**
+- Always `await evaluateFormula(String(value), actor)`
+- Always coerce result with `Number()` before arithmetic
+- Wrap in try/catch — malformed formulas should fail silently where possible
+
+**Changing badge appearance:**
+- The badge element is a `<span class="dh-lang-badge">` injected after `h1.actor-name` inside `.name-row`
+- State classes (`.dh-lang-badge--unspent`, `.dh-lang-badge--overspent`) are added async after pool evaluation
+- If adding more state classes, follow the same async pattern at the end of `injectLanguageBadge()`
+
+---
+
+## 12. Known Limitations / Future Considerations
+
+- **Spent points are recalculated live** from current costs — if a GM changes a language cost after a player acquires it, the displayed spent total changes. This is intentional (simpler storage).
+- **No chat integration** — language acquisition does not post to chat.
+- **No macro/API surface** — there is no public API for other modules to interact with.
+- **Adversary acquisition is GM-only** — non-GM players cannot see or click acquire buttons on adversary sheets (the `canAcquire` flag is always false for non-GM on adversaries).
+- **Formula errors during badge render** fail silently — a broken `pointFormula` means no glow class is applied, but the badge still renders.
+- **The `badge-tooltip.hbs` template** is a stub and is not used — tooltip text is set via `data-tooltip` attribute directly on the badge element.

@@ -252,50 +252,22 @@
   text-decoration: line-through;
 }
 
-/* Discount info badge (ⓘ) — shown when a cousin discount is applied */
-.dh-languages-dialog .discount-info {
+/* Info ⓘ badge — shows active discount context, cost rule, and/or cousin list on hover */
+.dh-languages-dialog .lang-info {
   font-size:   0.82em;
-  color:       rgba(201, 170, 113, 0.6);
+  color:       rgba(201, 170, 113, 0.5);
   cursor:      default;
   user-select: none;
   transition:  color 0.15s;
   flex-shrink: 0;
 }
 
-.dh-languages-dialog .discount-info:hover {
+.dh-languages-dialog .lang-info:hover {
   color: #c9aa71;
 }
 
-.dh-languages-dialog .discount-info.is-acquired {
+.dh-languages-dialog .lang-info.is-acquired {
   opacity: 0.55;
-}
-
-/* Related languages ⓘ badge — lists cousin languages and their discounts on hover */
-.dh-languages-dialog .related-langs-info {
-  font-size:   0.82em;
-  color:       rgba(201, 170, 113, 0.5);
-  cursor:      default;
-  user-select: none;
-  transition:  color 0.15s;
-  flex-shrink: 0;
-}
-
-.dh-languages-dialog .related-langs-info:hover {
-  color: #c9aa71;
-}
-
-/* Special Cost ⓘ badge — shown when a cost rule actively overrides this language's cost */
-.dh-languages-dialog .special-cost-info {
-  font-size:   0.82em;
-  color:       rgba(201, 170, 113, 0.5);
-  cursor:      default;
-  user-select: none;
-  transition:  color 0.15s;
-  flex-shrink: 0;
-}
-
-.dh-languages-dialog .special-cost-info:hover {
-  color: #c9aa71;
 }
 
 .dh-languages-dialog .lang-acquired-tag {

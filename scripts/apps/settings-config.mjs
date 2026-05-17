@@ -11,9 +11,11 @@ const MOCK_ACTOR = {
       presence:  { value: 0 },
       knowledge: { value: 0 },
     },
-    level:       1,
-    proficiency: 1,
-    tier:        1,
+    // @tier and @prof are the correct Daggerheart roll-data keys.
+    // @system.levelData.level.current is the correct path for character level.
+    tier:   1,
+    prof:   1,
+    system: { levelData: { level: { current: 1 } } },
   }),
 };
 
@@ -287,14 +289,14 @@ export class LanguageSettingsConfig extends foundry.applications.api.HandlebarsA
       });
     }
 
-    for (const input of el.querySelectorAll('[data-field="costRuleCost"]')) {
+    for (const input of el.querySelectorAll('[data-field="costRuleDiscountAmount"]')) {
       input.addEventListener('input', e => {
         const rule = this._findCostRule(
           e.currentTarget.dataset.categoryId,
           e.currentTarget.dataset.languageId,
           Number(e.currentTarget.dataset.ruleIndex),
         );
-        if (rule) rule.cost = e.target.value;
+        if (rule) rule.discountAmount = e.target.value;
       });
     }
 
@@ -525,7 +527,7 @@ export class LanguageSettingsConfig extends foundry.applications.api.HandlebarsA
   _addCostRule(categoryId, languageId) {
     const lang = this._findLanguage(categoryId, languageId);
     if (!lang) return;
-    (lang.costRules ??= []).push({ requirement: null, cost: 0 });
+    (lang.costRules ??= []).push({ requirement: null, discountAmount: 0 });
     this.render();
   }
 
@@ -652,11 +654,11 @@ export class LanguageSettingsConfig extends foundry.applications.api.HandlebarsA
         if (lang.requirement) await checkRequirement(lang.requirement, `Language "${lang.name}" requirement`);
 
         for (const rule of (lang.costRules ?? [])) {
-          if (rule.cost !== null && rule.cost !== '') {
-            const rc = await check(rule.cost, `Cost rule in "${lang.name}"`);
+          if (rule.discountAmount !== null && rule.discountAmount !== '') {
+            const rc = await check(rule.discountAmount, `Cost rule in "${lang.name}"`);
             if (rc !== null && rc < 0) {
               errors.push(game.i18n.format('DHLANG.Settings.validationError', {
-                error: `Cost rule in "${lang.name}" cost must be non-negative`,
+                error: `Cost rule in "${lang.name}" discount amount must be non-negative`,
               }));
             }
           }

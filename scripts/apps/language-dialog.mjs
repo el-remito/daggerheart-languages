@@ -80,31 +80,45 @@ export class LanguageDialog extends foundry.applications.api.HandlebarsApplicati
         const requirementFormula = resolveEffectiveRequirement(language, category, requirementWaived);
         const requirementMet = await evaluateRequirement(requirementFormula, this.actor);
 
+        // Build the single unified ⓘ badge tooltip — always at most one badge per row.
+        // Priority order: active discount context → active cost rule → full cousin list.
+        const infoParts = [];
+
+        // 1. Active cousin discount — names the cousin that won the contest.
+        if (cousinApplied) {
+          const cousinEntry = findLanguage(cousinApplied.languageId, config);
+          const cousinName  = cousinEntry ? cousinEntry.language.name : cousinApplied.languageId;
+          infoParts.push(
+            game.i18n.format('DHLANG.Dialog.discountReason', {
+              name:   this.actor.name,
+              cousin: cousinName,
+            })
+          );
+        }
+
+        // 2. Active cost rule discount — names the rule's requirement.
+        if (costRuleApplied?.requirement) {
+          infoParts.push(
+            game.i18n.format('DHLANG.Dialog.specialCost', {
+              requirement: formatRequirement(costRuleApplied.requirement),
+            })
+          );
+        }
+
+        // 3. Full cousin relationship list (informational).
         const cousinsInfo = (language.cousins ?? [])
           .map(c => {
             const entry = findLanguage(c.languageId, config);
             return entry ? `${entry.language.name} (-${c.discountAmount ?? 0})` : null;
           })
           .filter(Boolean);
-        const relatedTooltip = cousinsInfo.length > 0
-          ? `<strong>${game.i18n.localize('DHLANG.Dialog.relatedLanguages')}</strong><br>${cousinsInfo.join('<br>')}`
-          : null;
-
-        const specialCostTooltip = (costRuleApplied?.requirement)
-          ? game.i18n.format('DHLANG.Dialog.specialCost', {
-              requirement: formatRequirement(costRuleApplied.requirement),
-            })
-          : null;
-
-        let discountTooltip = null;
-        if (cousinApplied) {
-          const cousinEntry = findLanguage(cousinApplied.languageId, config);
-          const cousinName = cousinEntry ? cousinEntry.language.name : cousinApplied.languageId;
-          discountTooltip = game.i18n.format('DHLANG.Dialog.discountReason', {
-            name: this.actor.name,
-            cousin: cousinName,
-          });
+        if (cousinsInfo.length > 0) {
+          infoParts.push(
+            `<strong>${game.i18n.localize('DHLANG.Dialog.relatedLanguages')}</strong><br>${cousinsInfo.join('<br>')}`
+          );
         }
+
+        const infoTooltip = infoParts.length > 0 ? infoParts.join('<br>') : null;
 
         const canAfford = isPC ? (pool.remaining >= effectiveCost) : true;
         // Adversaries: cost and requirements are display-only, never enforced.
@@ -129,16 +143,14 @@ export class LanguageDialog extends foundry.applications.api.HandlebarsApplicati
           description:      language.description ?? null,
           effectiveCost,
           originalCost,
-          hasDiscount:      cousinApplied !== null,
+          hasDiscount:      cousinApplied !== null || costRuleApplied !== null,
           requirementFormula,
           requirementTooltip,
           requirementMet,
           alreadyAcquired,
           canAcquire,
           canAfford,
-          discountTooltip,
-          relatedTooltip,
-          specialCostTooltip,
+          infoTooltip,
         });
       }
       if (languages.length > 0) {

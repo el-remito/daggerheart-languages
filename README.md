@@ -9,8 +9,8 @@ A [Foundry VTT](https://foundryvtt.com/) module for the [Daggerheart](https://da
 ## Features
 
 - **GM-configured language catalogue** — define language categories with default costs and optional requirements, then add individual languages with per-language overrides.
-- **Point pool** — each PC has a point pool driven by a configurable formula (supports actor traits, `@level`, `@proficiency`, `@tier`, and keyword requirements such as `hasFeature:X` or `traitAtLeast:presence:2`).
-- **Cousin discounts** — languages can grant a discount amount when a related language is already known, optionally waiving the requirement entirely.
+- **Point pool** — each PC has a point pool driven by a configurable formula (supports actor traits, `@system.levelData.level.current`, `@prof`, `@tier`, and keyword requirements such as `hasFeature:X` or `traitAtLeast:presence:2`).
+- **Unified discount model** — both cousin discounts and cost-rule discounts compete for the best deal; the single largest discount wins (no stacking). Cousins can also optionally waive the language's requirement entirely.
 - **Formula helper** — a built-in picker in the config UI lets GMs build requirement formulas without writing them by hand.
 - **Badge** — a small icon is injected into every actor sheet header showing acquired languages on hover. It glows amber when the player can afford a new language and red if they have overspent.
 - **Acquisition dialog** — players click the badge to open a dialog listing all available languages grouped by category, with live affordability and requirement checking, a real-time search bar, and per-category acquired/total counters.
@@ -41,9 +41,10 @@ Download the [latest release](https://github.com/el-remito/daggerheart-languages
 1. Open **Game Settings → Module Settings → Configure Languages**.
 2. Add one or more **categories** (e.g. *Common*, *Ancient*, *Planar*). Each category has a default cost and an optional requirement formula.
 3. Add **languages** inside each category. Leave cost/requirement blank to inherit from the category.
-4. Optionally add **cousin relationships** to a language — when a player already knows the cousin language, the target language gets a discount (entered as an amount subtracted from the base cost, floored at 0).
-5. Set the **Point Pool Formula** at the top. Default is `2`; you can use any roll formula referencing actor data (e.g. `@tier * 2`).
-6. Click **Save**.
+4. Optionally add **cost rules** to a language — each rule has a requirement and a **Discount Amount**. The first matching rule enters the discount pool.
+5. Optionally add **cousin relationships** to a language — when a player already knows the cousin language, that discount also enters the pool. The single best discount wins (cost rules and cousin discounts do **not** stack). Cousins can also optionally waive the language requirement entirely.
+6. Set the **Point Pool Formula** at the top. Default is `2`; you can use any roll formula referencing actor data (e.g. `@tier * 2`).
+7. Click **Save**.
 
 ### Players
 
@@ -79,9 +80,31 @@ tierAtLeast:2 AND hasFeature:Wildtouch
 
 The formula picker's **Set / AND / OR** buttons let GMs build compound expressions interactively.
 
+### Point pool formula — available roll data tokens
+
+| Token | Meaning |
+|---|---|
+| `@traits.agility.value` | Agility trait value |
+| `@traits.strength.value` | Strength trait value |
+| `@traits.finesse.value` | Finesse trait value |
+| `@traits.instinct.value` | Instinct trait value |
+| `@traits.presence.value` | Presence trait value |
+| `@traits.knowledge.value` | Knowledge trait value |
+| `@tier` | Character tier |
+| `@prof` | Proficiency value |
+| `@system.levelData.level.current` | Character level |
+
+Example: `2 + @traits.knowledge.value + @system.levelData.level.current`
+
 ---
 
 ## Changelog
+
+### 1.1.2
+- Point pool formula hint and `README` corrected: `@level` → `@system.levelData.level.current`, `@proficiency` → `@prof`
+- Cost Rules redesigned: field renamed to **Discount Amount** — value is now subtracted from base cost (floor 0) instead of replacing it ⚠️ *Breaking: existing cost rule entries need to be re-entered*
+- Unified discount model: cost rule discounts and cousin discounts now compete — the single best discount wins; they no longer stack
+- Language dialog: all supplemental info consolidated into a **single ⓘ badge** per language row (active discount context, active cost rule, and cousin list)
 
 ### 1.1.1
 - Language dialog: categories start collapsed on first open
