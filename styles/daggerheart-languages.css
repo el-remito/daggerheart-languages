@@ -675,6 +675,22 @@
   background: rgba(255, 255, 255, 0.12);
 }
 
+/* Point formula info badge */
+.dh-languages-dialog .point-formula-info {
+  display:       inline-block;
+  margin-left:   0.25em;
+  font-size:     0.75em;
+  color:         rgba(201, 170, 113, 0.55);
+  cursor:        default;
+  user-select:   none;
+  vertical-align: middle;
+  transition:    color 0.15s;
+}
+
+.dh-languages-dialog .point-formula-info:hover {
+  color: #c9aa71;
+}
+
 /* ── Search Bar (shared by dialog and settings) ─────────────────────────── */
 
 .dh-lang-search-bar {

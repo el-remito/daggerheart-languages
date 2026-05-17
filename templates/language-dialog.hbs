@@ -3,7 +3,10 @@
   {{!-- Point pool (PC only) --}}
   {{#if isPC}}
   <div class="point-bar">
-    <span class="point-label">{{localize "DHLANG.Dialog.points"}}</span>
+    <span class="point-label">
+      {{localize "DHLANG.Dialog.points"}}
+      <span class="point-formula-info" data-tooltip="{{pointFormula}}">ⓘ</span>
+    </span>
     <div class="point-track">
       <div class="point-fill {{#if pool.overspent}}overspent{{/if}}" style="width: {{pool.percent}}%"></div>
     </div>

@@ -124,13 +124,14 @@ export class LanguageDialog extends foundry.applications.api.HandlebarsApplicati
     });
 
     return {
-      actor:      this.actor,
+      actor:        this.actor,
       isPC,
       isGM,
       pool,
+      pointFormula: config.pointFormula ?? '2',
       categories,
       acquiredLanguages,
-      isAdversary: this.actor.type === 'adversary',
+      isAdversary:  this.actor.type === 'adversary',
     };
   }
 
