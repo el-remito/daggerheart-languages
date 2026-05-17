@@ -1,5 +1,5 @@
 import { MODULE_ID, FLAGS, SETTINGS } from '../constants.mjs';
-import { getAcquiredLanguageIds, findLanguage, calculatePointPool } from '../utils/languages.mjs';
+import { getAcquiredLanguageIds, findLanguage, calculatePointPool, resolveLanguageCost } from '../utils/languages.mjs';
 
 /**
  * Finds a language name by ID within the world config.
@@ -10,6 +10,31 @@ import { getAcquiredLanguageIds, findLanguage, calculatePointPool } from '../uti
 function findLanguageName(id, config) {
   const found = findLanguage(id, config);
   return found?.language.name ?? null;
+}
+
+/**
+ * Returns true if the actor can afford at least one unacquired language,
+ * accounting for cousin discounts. Used to suppress the amber "unspent"
+ * glow when the player has remaining points but nothing left they can buy.
+ * @param {object} config
+ * @param {string[]} acquiredIds
+ * @param {Actor} actor
+ * @param {number} remaining
+ * @returns {Promise<boolean>}
+ */
+async function _canAffordAny(config, acquiredIds, actor, remaining) {
+  for (const cat of (config.categories ?? [])) {
+    for (const lang of (cat.languages ?? [])) {
+      if (acquiredIds.includes(lang.id)) continue;
+      try {
+        const { effectiveCost } = await resolveLanguageCost(lang, cat, actor);
+        if (effectiveCost <= remaining) return true;
+      } catch (_) {
+        // Malformed cost formula — skip this language.
+      }
+    }
+  }
+  return false;
 }
 
 /**
@@ -62,11 +87,17 @@ export async function injectLanguageBadge(app, html, actor) {
 
   // For PCs: evaluate the point pool and apply a glow class if points are unspent or overspent.
   // The badge is already in the DOM; the class is added async after pool evaluation completes.
+  // Amber "unspent" glow is only shown if the player can actually afford at least one
+  // unacquired language — suppressed when remaining points are too few for anything.
   if (isPC) {
     try {
       const pool = await calculatePointPool(actor, config);
-      if (pool.spent > pool.total)  badge.classList.add('dh-lang-badge--overspent');
-      else if (pool.remaining > 0)  badge.classList.add('dh-lang-badge--unspent');
+      if (pool.spent > pool.total) {
+        badge.classList.add('dh-lang-badge--overspent');
+      } else if (pool.remaining > 0) {
+        const canBuySomething = await _canAffordAny(config, acquiredIds, actor, pool.remaining);
+        if (canBuySomething) badge.classList.add('dh-lang-badge--unspent');
+      }
     } catch (_e) {
       // Formula evaluation failed — display badge without a state class.
     }
