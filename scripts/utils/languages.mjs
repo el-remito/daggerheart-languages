@@ -50,11 +50,12 @@ export async function resolveLanguageCost(language, category, actor) {
     return { effectiveCost: originalCost, originalCost, cousinApplied: null, requirementWaived: false };
   }
 
-  // Evaluate discounted cost for each matching cousin; skip any that error.
+  // Evaluate discount amount for each matching cousin and derive effective cost; skip errors.
   const evaluated = [];
   for (const cousin of matchingCousins) {
     try {
-      const discountedCost = await evaluateFormula(String(cousin.discountedCost), actor);
+      const discountAmount = await evaluateFormula(String(cousin.discountAmount ?? 0), actor);
+      const discountedCost = Math.max(0, originalCost - discountAmount);
       evaluated.push({ cousin, discountedCost });
     } catch (_) {
       // Malformed formula — skip this cousin.

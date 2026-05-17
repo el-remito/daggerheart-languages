@@ -175,13 +175,6 @@
   content: none !important;
 }
 
-.dh-languages-dialog .lang-category-description::before {
-  content:     "Description: ";
-  font-style:  normal;
-  font-weight: 600;
-  color:       #c9aa71;
-}
-
 /* Language row */
 .dh-languages-dialog .lang-row {
   display:     flex;
@@ -237,9 +230,28 @@
   white-space: nowrap;
 }
 
+.dh-languages-dialog .lang-cost.is-acquired {
+  text-decoration: line-through;
+  opacity:         0.55;
+}
+
 .dh-languages-dialog .lang-cost del {
   color:           #888;
   text-decoration: line-through;
+}
+
+/* Discount info badge (ⓘ) — shown when a cousin discount is applied */
+.dh-languages-dialog .discount-info {
+  font-size:   0.82em;
+  color:       rgba(201, 170, 113, 0.6);
+  cursor:      default;
+  user-select: none;
+  transition:  color 0.15s;
+  flex-shrink: 0;
+}
+
+.dh-languages-dialog .discount-info:hover {
+  color: #c9aa71;
 }
 
 .dh-languages-dialog .lang-acquired-tag {

@@ -2,6 +2,7 @@ import { MODULE_ID, FLAGS, SETTINGS, TEMPLATES } from '../constants.mjs';
 import { evaluateRequirement, formatRequirement } from '../utils/formula.mjs';
 import {
   getAcquiredLanguageIds,
+  findLanguage,
   resolveLanguageCost,
   resolveEffectiveRequirement,
   calculatePointPool,
@@ -79,6 +80,16 @@ export class LanguageDialog extends foundry.applications.api.HandlebarsApplicati
         const requirementFormula = resolveEffectiveRequirement(language, category, requirementWaived);
         const requirementMet = await evaluateRequirement(requirementFormula, this.actor);
 
+        let discountTooltip = null;
+        if (cousinApplied) {
+          const cousinEntry = findLanguage(cousinApplied.languageId, config);
+          const cousinName = cousinEntry ? cousinEntry.language.name : cousinApplied.languageId;
+          discountTooltip = game.i18n.format('DHLANG.Dialog.discountReason', {
+            name: this.actor.name,
+            cousin: cousinName,
+          });
+        }
+
         const canAfford = isPC ? (pool.remaining >= effectiveCost) : true;
         // Adversaries: cost and requirements are display-only, never enforced.
         const canAcquire = !alreadyAcquired && (isPC ? (canAfford && requirementMet) : true);
@@ -100,6 +111,7 @@ export class LanguageDialog extends foundry.applications.api.HandlebarsApplicati
           alreadyAcquired,
           canAcquire,
           canAfford,
+          discountTooltip,
         });
       }
       if (languages.length > 0) {

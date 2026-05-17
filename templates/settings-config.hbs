@@ -159,8 +159,8 @@
               {{/each}}
             </select>
             <label class="cousin-cost">
-              {{localize "DHLANG.Settings.cousinDiscountedCost"}}
-              <input type="text" value="{{this.discountedCost}}" data-field="cousinDiscountedCost" data-category-id="{{../../id}}" data-language-id="{{../id}}" data-cousin-index="{{@index}}" />
+              {{localize "DHLANG.Settings.cousinDiscountAmount"}}
+              <input type="text" value="{{this.discountAmount}}" data-field="cousinDiscountAmount" data-category-id="{{../../id}}" data-language-id="{{../id}}" data-cousin-index="{{@index}}" />
             </label>
             <label class="cousin-waive">
               <input type="checkbox" {{#if this.waiveRequirement}}checked{{/if}} data-field="cousinWaiveRequirement" data-category-id="{{../../id}}" data-language-id="{{../id}}" data-cousin-index="{{@index}}" />

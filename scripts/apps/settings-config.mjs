@@ -238,14 +238,14 @@ export class LanguageSettingsConfig extends foundry.applications.api.HandlebarsA
       });
     }
 
-    for (const input of el.querySelectorAll('[data-field="cousinDiscountedCost"]')) {
+    for (const input of el.querySelectorAll('[data-field="cousinDiscountAmount"]')) {
       input.addEventListener('input', e => {
         const cousin = this._findCousin(
           e.currentTarget.dataset.categoryId,
           e.currentTarget.dataset.languageId,
           Number(e.currentTarget.dataset.cousinIndex),
         );
-        if (cousin) cousin.discountedCost = e.target.value;
+        if (cousin) cousin.discountAmount = e.target.value;
       });
     }
 
@@ -436,7 +436,7 @@ export class LanguageSettingsConfig extends foundry.applications.api.HandlebarsA
   _addCousin(categoryId, languageId) {
     const lang = this._findLanguage(categoryId, languageId);
     if (!lang) return;
-    lang.cousins.push({ languageId: '', discountedCost: 0, waiveRequirement: false });
+    lang.cousins.push({ languageId: '', discountAmount: 0, waiveRequirement: false });
     this.render();
   }
 
@@ -537,9 +537,9 @@ export class LanguageSettingsConfig extends foundry.applications.api.HandlebarsA
         if (lang.requirement) await checkRequirement(lang.requirement, `Language "${lang.name}" requirement`);
 
         for (const cousin of (lang.cousins ?? [])) {
-          const dc = await check(cousin.discountedCost, `Cousin discounted cost in "${lang.name}"`);
-          if (dc !== null && dc < 0) {
-            errors.push(game.i18n.format('DHLANG.Settings.validationError', { error: `Cousin discounted cost in "${lang.name}" must be non-negative` }));
+          const da = await check(cousin.discountAmount, `Cousin discount amount in "${lang.name}"`);
+          if (da !== null && da < 0) {
+            errors.push(game.i18n.format('DHLANG.Settings.validationError', { error: `Cousin discount amount in "${lang.name}" must be non-negative` }));
           }
         }
       }

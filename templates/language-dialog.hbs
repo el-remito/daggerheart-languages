@@ -57,7 +57,8 @@
       <span class="lang-name">{{this.name}}</span>
       {{#if this.description}}<p class="lang-description">{{this.description}}</p>{{/if}}
       <div class="lang-actions">
-        <span class="lang-cost">
+        {{#if this.discountTooltip}}<span class="discount-info" data-tooltip="{{this.discountTooltip}}">ⓘ</span>{{/if}}
+        <span class="lang-cost{{#if this.alreadyAcquired}} is-acquired{{/if}}">
           {{localize "DHLANG.Dialog.cost"}}:
           {{#if this.hasDiscount}}
             <del>{{this.originalCost}}</del> → {{this.effectiveCost}}
