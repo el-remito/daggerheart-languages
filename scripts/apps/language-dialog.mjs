@@ -15,29 +15,29 @@ export class LanguageDialog extends foundry.applications.api.HandlebarsApplicati
     id:       'dh-language-dialog',
     classes:  ['daggerheart', 'dh-languages-dialog'],
     window:   { resizable: true },
-    position: { width: 520, height: 'auto' },
+    position: { width: 520, height: 550 },
   };
 
   static PARTS = {
     main: { template: TEMPLATES.LANGUAGE_DIALOG },
   };
 
-  // Collapse state — persisted across re-renders so user-closed categories stay closed.
-  #collapsedCategories = new Set();
+  // Collapse state — persisted across re-renders so user-opened categories stay open.
+  #openCategories = new Set();
 
   constructor(options = {}) {
     super(options);
     this.actor = options.actor;
   }
 
-  /** Snapshot which category <details> are currently closed before a re-render wipes the DOM. */
+  /** Snapshot which category <details> are currently open before a re-render wipes the DOM. */
   _captureCollapseState() {
     if (!this.element) return;
-    this.#collapsedCategories = new Set();
+    this.#openCategories = new Set();
     for (const d of this.element.querySelectorAll('.lang-category')) {
-      if (!d.open) {
+      if (d.open) {
         const id = d.dataset.categoryId;
-        if (id) this.#collapsedCategories.add(id);
+        if (id) this.#openCategories.add(id);
       }
     }
   }
@@ -157,10 +157,10 @@ export class LanguageDialog extends foundry.applications.api.HandlebarsApplicati
       btn.addEventListener('click', this._onRemoveLanguage.bind(this));
     }
 
-    // Restore collapse state: any category that was closed before the re-render stays closed.
+    // Restore collapse state: any category that was open before the re-render stays open.
     for (const d of this.element.querySelectorAll('.lang-category')) {
       const id = d.dataset.categoryId;
-      if (id && this.#collapsedCategories.has(id)) d.removeAttribute('open');
+      if (id && this.#openCategories.has(id)) d.setAttribute('open', '');
     }
 
     // Search bar — filters language rows and hides empty categories in real time.

@@ -47,6 +47,18 @@
 
 /* ── Language Dialog ────────────────────────────────────────────────────── */
 
+/* Fixed height enables internal scroll (mirrors settings config pattern) */
+#dh-language-dialog .window-content {
+  overflow-y:      auto;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(201, 170, 113, 0.5) rgba(255, 255, 255, 0.05);
+}
+
+#dh-language-dialog .window-content::-webkit-scrollbar       { width: 6px; }
+#dh-language-dialog .window-content::-webkit-scrollbar-track { background: rgba(255,255,255,0.05); border-radius: 3px; }
+#dh-language-dialog .window-content::-webkit-scrollbar-thumb { background: rgba(201,170,113,0.5);  border-radius: 3px; }
+#dh-language-dialog .window-content::-webkit-scrollbar-thumb:hover { background: rgba(201,170,113,0.8); }
+
 .dh-languages-dialog {
   padding: 0.75rem 1rem;
   display: flex;
