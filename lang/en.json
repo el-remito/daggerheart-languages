@@ -28,8 +28,10 @@
   "DHLANG.Settings.confirmDeleteLanguage": "Delete this language? This cannot be undone until you save.",
   "DHLANG.Settings.confirmDeleteCousin":   "Remove this cousin relationship?",
 
-  "DHLANG.Badge.noLanguages": "This creature speaks no known languages",
-  "DHLANG.Badge.speaksLanguages": "This creature speaks the following languages: {languages}",
+  "DHLANG.Badge.noLanguages":       "This creature speaks no known languages",
+  "DHLANG.Badge.speaksLanguages":   "This creature speaks the following languages: {languages}",
+  "DHLANG.Badge.pcNoLanguages":     "{name} speaks no known languages",
+  "DHLANG.Badge.pcSpeaksLanguages": "{name} speaks the following languages: {languages}",
 
   "DHLANG.Dialog.title":                  "Languages — {name}",
   "DHLANG.Dialog.points":                 "Points",

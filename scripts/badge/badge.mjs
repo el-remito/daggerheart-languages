@@ -39,9 +39,14 @@ export function injectLanguageBadge(app, html, actor) {
   const config = game.settings.get(MODULE_ID, SETTINGS.CONFIG);
   const acquiredIds = getAcquiredLanguageIds(actor);
   const names = acquiredIds.map(id => findLanguageName(id, config)).filter(Boolean);
-  const tooltip = names.length
-    ? game.i18n.format('DHLANG.Badge.speaksLanguages', { languages: names.join(', ') })
-    : game.i18n.localize('DHLANG.Badge.noLanguages');
+  const isPC = actor.type === 'character';
+  const tooltip = isPC
+    ? (names.length
+        ? game.i18n.format('DHLANG.Badge.pcSpeaksLanguages', { name: actor.name, languages: names.join(', ') })
+        : game.i18n.format('DHLANG.Badge.pcNoLanguages',     { name: actor.name }))
+    : (names.length
+        ? game.i18n.format('DHLANG.Badge.speaksLanguages',   { languages: names.join(', ') })
+        : game.i18n.localize('DHLANG.Badge.noLanguages'));
 
   const badge = document.createElement('span');
   badge.className = 'dh-lang-badge';
