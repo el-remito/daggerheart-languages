@@ -18,14 +18,73 @@ export async function evaluateFormula(formula, actor) {
 
 /**
  * Evaluates a requirement expression against an actor.
- * Returns true if the requirement is met (non-zero result) or absent.
- * Returns false if the formula evaluates to 0.
+ *
+ * Supports keyword-based requirements (evaluated directly against actor data)
+ * and falls back to Roll formula evaluation for anything else.
+ *
+ * Keyword forms:
+ *   hasFeature:FeatureName       — actor has a feature item with that name (case-insensitive)
+ *   hasDomain:DomainName         — actor belongs to a domain with that label (case-insensitive)
+ *   hasSpellcasting              — actor has any spellcasting trait defined
+ *   traitAtLeast:traitName:N     — actor's trait value >= N
+ *
+ * Non-PC actors always pass keyword checks (requirements are never enforced on adversaries).
+ * Keyword evaluation errors fail permissively (return true) so broken configs don't lock players.
+ *
  * @param {string|null|undefined} requirement
  * @param {Actor} actor
  * @returns {Promise<boolean>}
  */
 export async function evaluateRequirement(requirement, actor) {
   if (!requirement) return true;
-  const result = await evaluateFormula(requirement, actor);
+  const req = requirement.trim();
+
+  // ── Keyword: hasFeature:FeatureName ──────────────────────────────────────
+  if (req.startsWith('hasFeature:')) {
+    if (actor.type !== 'character') return true;
+    const featureName = req.slice('hasFeature:'.length).trim();
+    if (!featureName) return true;
+    try {
+      return actor.items.some(
+        i => i.type === 'feature' && i.name.toLowerCase() === featureName.toLowerCase()
+      );
+    } catch (_) { return true; }
+  }
+
+  // ── Keyword: hasDomain:DomainName ────────────────────────────────────────
+  if (req.startsWith('hasDomain:')) {
+    if (actor.type !== 'character') return true;
+    const domainName = req.slice('hasDomain:'.length).trim();
+    if (!domainName) return true;
+    try {
+      const domainData = actor.system?.domainData ?? [];
+      return domainData.some(d => d.label?.toLowerCase() === domainName.toLowerCase());
+    } catch (_) { return true; }
+  }
+
+  // ── Keyword: hasSpellcasting ─────────────────────────────────────────────
+  if (req === 'hasSpellcasting') {
+    if (actor.type !== 'character') return true;
+    try {
+      return actor.system?.spellcastingModifiers?.main != null;
+    } catch (_) { return true; }
+  }
+
+  // ── Keyword: traitAtLeast:traitName:N ────────────────────────────────────
+  if (req.startsWith('traitAtLeast:')) {
+    if (actor.type !== 'character') return true;
+    const parts = req.slice('traitAtLeast:'.length).split(':');
+    if (parts.length < 2) return true;
+    const [traitName, minStr] = parts;
+    const minValue = Number(minStr);
+    if (!traitName || isNaN(minValue)) return true;
+    try {
+      const traitValue = actor.system?.traits?.[traitName.toLowerCase()]?.value ?? 0;
+      return traitValue >= minValue;
+    } catch (_) { return true; }
+  }
+
+  // ── Fallback: standard Roll formula ─────────────────────────────────────
+  const result = await evaluateFormula(req, actor);
   return result !== 0;
 }

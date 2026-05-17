@@ -374,6 +374,8 @@ export class LanguageSettingsConfig extends foundry.applications.api.HandlebarsA
 
   async _validate() {
     const errors = [];
+
+    // ── Roll-formula checker (math expressions only) ──────────────────────
     const check = async (formula, label) => {
       if (!formula && formula !== 0) return null;
       try {
@@ -384,17 +386,53 @@ export class LanguageSettingsConfig extends foundry.applications.api.HandlebarsA
       }
     };
 
+    // ── Keyword-requirement syntax checker ────────────────────────────────
+    // Keyword requirements are never passed to Roll — we validate syntax only.
+    const VALID_TRAITS = ['agility', 'strength', 'finesse', 'instinct', 'presence', 'knowledge'];
+    const checkRequirement = async (requirement, label) => {
+      if (!requirement) return;
+      const req = requirement.trim();
+
+      if (req.startsWith('hasFeature:')) {
+        const value = req.slice('hasFeature:'.length).trim();
+        if (!value) errors.push(game.i18n.format('DHLANG.Settings.validationError', { error: `${label}: hasFeature requires a feature name (e.g. hasFeature:Spellcasting)` }));
+        return;
+      }
+      if (req.startsWith('hasDomain:')) {
+        const value = req.slice('hasDomain:'.length).trim();
+        if (!value) errors.push(game.i18n.format('DHLANG.Settings.validationError', { error: `${label}: hasDomain requires a domain name (e.g. hasDomain:Divine)` }));
+        return;
+      }
+      if (req === 'hasSpellcasting') return; // always valid
+      if (req.startsWith('traitAtLeast:')) {
+        const parts = req.slice('traitAtLeast:'.length).split(':');
+        const trait = parts[0]?.toLowerCase();
+        const minVal = Number(parts[1]);
+        if (parts.length < 2 || !VALID_TRAITS.includes(trait) || isNaN(minVal)) {
+          errors.push(game.i18n.format('DHLANG.Settings.validationError', {
+            error: `${label}: traitAtLeast format is traitAtLeast:<trait>:<number> with trait one of: ${VALID_TRAITS.join(', ')}`,
+          }));
+        }
+        return;
+      }
+
+      // Standard Roll formula fallback
+      await check(requirement, label);
+    };
+
+    // ── Validate point formula ────────────────────────────────────────────
     const pointTotal = await check(this.#config.pointFormula, 'Point Formula');
     if (pointTotal !== null && pointTotal <= 0) {
       errors.push(game.i18n.format('DHLANG.Settings.validationError', { error: 'Point Formula must resolve to a positive integer' }));
     }
 
+    // ── Validate categories, languages, cousins ───────────────────────────
     for (const cat of (this.#config.categories ?? [])) {
       const catCost = await check(cat.cost, `Category "${cat.name}" cost`);
       if (catCost !== null && catCost < 0) {
         errors.push(game.i18n.format('DHLANG.Settings.validationError', { error: `Category "${cat.name}" cost must be non-negative` }));
       }
-      if (cat.requirement) await check(cat.requirement, `Category "${cat.name}" requirement`);
+      if (cat.requirement) await checkRequirement(cat.requirement, `Category "${cat.name}" requirement`);
 
       for (const lang of (cat.languages ?? [])) {
         if (lang.cost !== null && lang.cost !== '') {
@@ -403,7 +441,7 @@ export class LanguageSettingsConfig extends foundry.applications.api.HandlebarsA
             errors.push(game.i18n.format('DHLANG.Settings.validationError', { error: `Language "${lang.name}" cost must be non-negative` }));
           }
         }
-        if (lang.requirement) await check(lang.requirement, `Language "${lang.name}" requirement`);
+        if (lang.requirement) await checkRequirement(lang.requirement, `Language "${lang.name}" requirement`);
 
         for (const cousin of (lang.cousins ?? [])) {
           const dc = await check(cousin.discountedCost, `Cousin discounted cost in "${lang.name}"`);
