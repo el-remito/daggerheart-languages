@@ -266,6 +266,71 @@ export class LanguageSettingsConfig extends foundry.applications.api.HandlebarsA
     el.querySelector('[data-action="cancelConfig"]')
       ?.addEventListener('click', () => this.close());
 
+    // ── Formula picker wiring ─────────────────────────────────────────────
+    for (const wrapper of el.querySelectorAll('.requirement-group')) {
+      const reqInput    = wrapper.querySelector('input[data-field]');
+      const toggleBtn   = wrapper.querySelector('.picker-toggle-btn');
+      const pickerPanel = wrapper.querySelector('.formula-picker');
+      const typeSelect  = wrapper.querySelector('.picker-type-select');
+      const applyBtn    = wrapper.querySelector('.picker-apply-btn');
+
+      // Show/hide the correct sub-field block for the selected type.
+      const syncSubFields = () => {
+        const type = typeSelect.value;
+        for (const sub of wrapper.querySelectorAll('.picker-sub')) sub.hidden = true;
+        if (type === 'hasFeature')   wrapper.querySelector('.picker-sub--feature').hidden = false;
+        if (type === 'hasDomain')    wrapper.querySelector('.picker-sub--domain').hidden  = false;
+        if (type === 'traitAtLeast') wrapper.querySelector('.picker-sub--trait').hidden   = false;
+        // 'hasSpellcasting' and 'custom' need no sub-fields.
+      };
+
+      toggleBtn?.addEventListener('click', () => {
+        pickerPanel.hidden = !pickerPanel.hidden;
+        if (!pickerPanel.hidden) syncSubFields(); // ensure correct sub-field visible on open
+      });
+
+      typeSelect?.addEventListener('change', syncSubFields);
+
+      applyBtn?.addEventListener('click', () => {
+        const type = typeSelect.value;
+        let formula = '';
+
+        switch (type) {
+          case 'hasFeature': {
+            const name = wrapper.querySelector('.picker-feature-name')?.value.trim();
+            if (name) formula = `hasFeature:${name}`;
+            break;
+          }
+          case 'hasDomain': {
+            const name = wrapper.querySelector('.picker-domain-name')?.value.trim();
+            if (name) formula = `hasDomain:${name}`;
+            break;
+          }
+          case 'hasSpellcasting':
+            formula = 'hasSpellcasting';
+            break;
+          case 'traitAtLeast': {
+            const trait  = wrapper.querySelector('.picker-trait-select')?.value;
+            const minVal = wrapper.querySelector('.picker-min-value')?.value;
+            if (trait && minVal) formula = `traitAtLeast:${trait}:${minVal}`;
+            break;
+          }
+          case 'custom':
+          default:
+            // Nothing to insert; just close.
+            pickerPanel.hidden = true;
+            return;
+        }
+
+        if (formula && reqInput) {
+          reqInput.value = formula;
+          // Fire the existing sync listener so #config is updated immediately.
+          reqInput.dispatchEvent(new Event('input', { bubbles: true }));
+        }
+        pickerPanel.hidden = true;
+      });
+    }
+
     // Restore collapse state: any <details> whose ID was in the closed set before
     // the re-render should have its open attribute removed again.
     for (const d of el.querySelectorAll('.config-category')) {

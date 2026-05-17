@@ -28,10 +28,46 @@
           {{localize "DHLANG.Settings.defaultCost"}}
           <input type="text" value="{{this.cost}}" data-field="categoryCost" data-category-id="{{this.id}}" />
         </label>
-        <label>
-          {{localize "DHLANG.Settings.defaultRequirement"}}
-          <input type="text" value="{{this.requirement}}" data-field="categoryRequirement" data-category-id="{{this.id}}" placeholder="optional" />
-        </label>
+        <div class="requirement-group">
+          <span class="rg-label">{{localize "DHLANG.Settings.defaultRequirement"}}</span>
+          <div class="rg-row">
+            <input type="text" value="{{this.requirement}}" data-field="categoryRequirement" data-category-id="{{this.id}}" placeholder="optional" />
+            <button type="button" class="picker-toggle-btn">⚡ {{localize "DHLANG.Picker.toggle"}}</button>
+          </div>
+          <div class="formula-picker" hidden>
+            <select class="picker-type-select">
+              <option value="custom">{{localize "DHLANG.Picker.typeCustom"}}</option>
+              <option value="hasFeature">{{localize "DHLANG.Picker.typeHasFeature"}}</option>
+              <option value="hasDomain">{{localize "DHLANG.Picker.typeHasDomain"}}</option>
+              <option value="hasSpellcasting">{{localize "DHLANG.Picker.typeHasSpellcasting"}}</option>
+              <option value="traitAtLeast">{{localize "DHLANG.Picker.typeTraitAtLeast"}}</option>
+            </select>
+            <div class="picker-sub picker-sub--feature" hidden>
+              <label>{{localize "DHLANG.Picker.featureName"}}
+                <input type="text" class="picker-feature-name" placeholder="e.g. Wildtouch" />
+              </label>
+            </div>
+            <div class="picker-sub picker-sub--domain" hidden>
+              <label>{{localize "DHLANG.Picker.domainName"}}
+                <input type="text" class="picker-domain-name" placeholder="e.g. Splendor" />
+              </label>
+            </div>
+            <div class="picker-sub picker-sub--trait" hidden>
+              <select class="picker-trait-select">
+                <option value="agility">{{localize "DHLANG.Picker.traitAgility"}}</option>
+                <option value="strength">{{localize "DHLANG.Picker.traitStrength"}}</option>
+                <option value="finesse">{{localize "DHLANG.Picker.traitFinesse"}}</option>
+                <option value="instinct">{{localize "DHLANG.Picker.traitInstinct"}}</option>
+                <option value="presence">{{localize "DHLANG.Picker.traitPresence"}}</option>
+                <option value="knowledge">{{localize "DHLANG.Picker.traitKnowledge"}}</option>
+              </select>
+              <label class="picker-min-label">{{localize "DHLANG.Picker.minValue"}}
+                <input type="number" class="picker-min-value" value="1" min="1" />
+              </label>
+            </div>
+            <button type="button" class="picker-apply-btn">{{localize "DHLANG.Picker.apply"}}</button>
+          </div>
+        </div>
         <label>
           {{localize "DHLANG.Settings.categoryDescription"}}
           <textarea data-field="categoryDescription" data-category-id="{{this.id}}" placeholder="optional" rows="2">{{this.description}}</textarea>
@@ -59,10 +95,46 @@
             {{localize "DHLANG.Settings.costOverride"}}
             <input type="text" value="{{this.cost}}" data-field="languageCost" data-category-id="{{../id}}" data-language-id="{{this.id}}" placeholder="optional" />
           </label>
-          <label>
-            {{localize "DHLANG.Settings.requirementOverride"}}
-            <input type="text" value="{{this.requirement}}" data-field="languageRequirement" data-category-id="{{../id}}" data-language-id="{{this.id}}" placeholder="optional" />
-          </label>
+          <div class="requirement-group">
+            <span class="rg-label">{{localize "DHLANG.Settings.requirementOverride"}}</span>
+            <div class="rg-row">
+              <input type="text" value="{{this.requirement}}" data-field="languageRequirement" data-category-id="{{../id}}" data-language-id="{{this.id}}" placeholder="optional" />
+              <button type="button" class="picker-toggle-btn">⚡ {{localize "DHLANG.Picker.toggle"}}</button>
+            </div>
+            <div class="formula-picker" hidden>
+              <select class="picker-type-select">
+                <option value="custom">{{localize "DHLANG.Picker.typeCustom"}}</option>
+                <option value="hasFeature">{{localize "DHLANG.Picker.typeHasFeature"}}</option>
+                <option value="hasDomain">{{localize "DHLANG.Picker.typeHasDomain"}}</option>
+                <option value="hasSpellcasting">{{localize "DHLANG.Picker.typeHasSpellcasting"}}</option>
+                <option value="traitAtLeast">{{localize "DHLANG.Picker.typeTraitAtLeast"}}</option>
+              </select>
+              <div class="picker-sub picker-sub--feature" hidden>
+                <label>{{localize "DHLANG.Picker.featureName"}}
+                  <input type="text" class="picker-feature-name" placeholder="e.g. Wildtouch" />
+                </label>
+              </div>
+              <div class="picker-sub picker-sub--domain" hidden>
+                <label>{{localize "DHLANG.Picker.domainName"}}
+                  <input type="text" class="picker-domain-name" placeholder="e.g. Splendor" />
+                </label>
+              </div>
+              <div class="picker-sub picker-sub--trait" hidden>
+                <select class="picker-trait-select">
+                  <option value="agility">{{localize "DHLANG.Picker.traitAgility"}}</option>
+                  <option value="strength">{{localize "DHLANG.Picker.traitStrength"}}</option>
+                  <option value="finesse">{{localize "DHLANG.Picker.traitFinesse"}}</option>
+                  <option value="instinct">{{localize "DHLANG.Picker.traitInstinct"}}</option>
+                  <option value="presence">{{localize "DHLANG.Picker.traitPresence"}}</option>
+                  <option value="knowledge">{{localize "DHLANG.Picker.traitKnowledge"}}</option>
+                </select>
+                <label class="picker-min-label">{{localize "DHLANG.Picker.minValue"}}
+                  <input type="number" class="picker-min-value" value="1" min="1" />
+                </label>
+              </div>
+              <button type="button" class="picker-apply-btn">{{localize "DHLANG.Picker.apply"}}</button>
+            </div>
+          </div>
           <label>
             {{localize "DHLANG.Settings.languageDescription"}}
             <textarea data-field="languageDescription" data-category-id="{{../id}}" data-language-id="{{this.id}}" placeholder="optional" rows="2">{{this.description}}</textarea>
