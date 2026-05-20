@@ -561,6 +561,16 @@
   border-color: rgba(201, 170, 113, 0.6);
 }
 
+/* Universal language checkbox — horizontal layout, gold accent */
+.dh-settings-config .language-universal-label {
+  flex-direction: row;
+  align-items:    center;
+  gap:            0.4em;
+  color:          #c9aa71;
+  font-weight:    600;
+  margin-top:     0.1em;
+}
+
 /* Cousin section */
 .dh-settings-config .cousin-section {
   padding: 0.4em 0.6em;

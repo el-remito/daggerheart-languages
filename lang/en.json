@@ -32,6 +32,7 @@
   "DHLANG.Settings.costRuleRequirement":   "Requirement",
   "DHLANG.Settings.costRuleDiscountAmount": "Discount Amount",
   "DHLANG.Settings.confirmDeleteCostRule": "Remove this cost rule?",
+  "DHLANG.Settings.languageUniversal":     "Universal (e.g. Common — spoken by everyone)",
 
   "DHLANG.Search.placeholder": "Search languages, categories or their descriptions…",
 
