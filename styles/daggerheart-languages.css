@@ -812,6 +812,94 @@
   color: #666;
 }
 
+/* ── Party Language Overview ─────────────────────────────────────────────── */
+
+#dh-party-language-overview .window-content {
+  overflow-y:      auto;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(201, 170, 113, 0.5) rgba(255, 255, 255, 0.05);
+}
+
+#dh-party-language-overview .window-content::-webkit-scrollbar       { width: 6px; }
+#dh-party-language-overview .window-content::-webkit-scrollbar-track { background: rgba(255,255,255,0.05); border-radius: 3px; }
+#dh-party-language-overview .window-content::-webkit-scrollbar-thumb { background: rgba(201,170,113,0.5);  border-radius: 3px; }
+#dh-party-language-overview .window-content::-webkit-scrollbar-thumb:hover { background: rgba(201,170,113,0.8); }
+
+.dh-party-overview {
+  padding:        0.75rem 1rem;
+  display:        flex;
+  flex-direction: column;
+  gap:            0.15rem;
+  font-family:    inherit;
+  color:          #ddd;
+}
+
+.dh-party-overview .party-empty-hint {
+  color:      #888;
+  font-style: italic;
+  font-size:  0.88em;
+  text-align: center;
+  margin:     1em 0;
+}
+
+.dh-party-overview .lang-row {
+  display:       flex;
+  align-items:   center;
+  flex-wrap:     wrap;
+  gap:           0.4em 0.7em;
+  padding:       0.35em 0.5em;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.dh-party-overview .lang-row:hover {
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.dh-party-overview .lang-row.no-speakers {
+  opacity: 0.42;
+}
+
+.dh-party-overview .lang-name {
+  min-width:   8em;
+  font-weight: 600;
+  color:       #eee;
+  flex-shrink: 0;
+}
+
+/* Universal star pip */
+.dh-party-overview .lang-universal-pip {
+  color:       #c9aa71;
+  font-size:   0.75em;
+  margin-right: 0.2em;
+  vertical-align: middle;
+  cursor:      default;
+}
+
+.dh-party-overview .lang-speakers {
+  display:   flex;
+  flex-wrap: wrap;
+  gap:       0.3em;
+  flex:      1;
+}
+
+/* Speaker chips — small gold pills */
+.dh-speaker-chip {
+  display:       inline-block;
+  padding:       0.1em 0.5em;
+  border:        1px solid rgba(201, 170, 113, 0.45);
+  border-radius: 999px;
+  background:    rgba(201, 170, 113, 0.1);
+  color:         #c9aa71;
+  font-size:     0.78em;
+  white-space:   nowrap;
+  line-height:   1.5;
+}
+
+.dh-party-overview .no-speakers-dash {
+  color:     #666;
+  font-size: 0.88em;
+}
+
 /* ── Formula Picker ─────────────────────────────────────────────────────── */
 
 /* Wrapper replacing <label> for requirement fields */
