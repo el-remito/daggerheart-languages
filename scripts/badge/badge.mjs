@@ -1,4 +1,4 @@
-import { MODULE_ID, FLAGS, SETTINGS } from '../constants.mjs';
+import { MODULE_ID, FLAGS, SETTINGS, ACTOR_TYPES } from '../constants.mjs';
 import { getAcquiredLanguageIds, findLanguage, calculatePointPool, resolveLanguageCost } from '../utils/languages.mjs';
 
 /**
@@ -45,6 +45,58 @@ async function _canAffordAny(config, acquiredIds, actor, remaining) {
 async function openLanguageDialog(actor) {
   const { LanguageDialog } = await import('../apps/language-dialog.mjs');
   LanguageDialog.open(actor);
+}
+
+/**
+ * Opens the PartyLanguageOverview dialog for the given party actor.
+ * Imported lazily so badge.mjs doesn't hard-depend on the dialog at load time.
+ * @param {Actor} actor
+ */
+async function openPartyLanguageOverview(actor) {
+  const { PartyLanguageOverview } = await import('../apps/party-language-overview.mjs');
+  PartyLanguageOverview.open(actor);
+}
+
+/**
+ * Injects the language badge into a Party actor sheet header.
+ * All users who can see the party sheet may click to open the read-only overview.
+ * No glow states — parties have no point pool.
+ * @param {ActorSheet} app
+ * @param {HTMLElement} html
+ * @param {Actor} actor
+ */
+export function injectPartyLanguageBadge(app, html, actor) {
+  const nameRow = html.querySelector('.name-row');
+  if (!nameRow) return;
+
+  nameRow.querySelector('.dh-lang-badge')?.remove();
+
+  const config = game.settings.get(MODULE_ID, SETTINGS.CONFIG);
+  const memberUuids = actor.system?.partyMembers ?? [];
+  const members = memberUuids
+    .map(uuid => fromUuidSync(uuid))
+    .filter(a => a && a.type === ACTOR_TYPES.PC);
+
+  // Count unique languages known across all party members.
+  const knownIds = new Set();
+  for (const member of members) {
+    for (const id of getAcquiredLanguageIds(member)) knownIds.add(id);
+  }
+  const count = knownIds.size;
+
+  const tooltip = count > 0
+    ? game.i18n.format('DHLANG.Party.badgeTooltipCount', { count })
+    : game.i18n.localize('DHLANG.Party.badgeTooltipNone');
+
+  const badge = document.createElement('span');
+  badge.className = 'dh-lang-badge';
+  badge.dataset.actorId = actor.id;
+  badge.dataset.tooltip = tooltip;
+  badge.innerHTML = '<i class="fas fa-language"></i>';
+
+  badge.addEventListener('click', () => openPartyLanguageOverview(actor));
+
+  nameRow.querySelector('h1.actor-name').insertAdjacentElement('afterend', badge);
 }
 
 /**

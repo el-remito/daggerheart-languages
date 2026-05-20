@@ -89,5 +89,11 @@
   "DHLANG.Dialog.relatedLanguages":       "Related Languages",
   "DHLANG.Dialog.specialCost":            "<strong>Special Discount:</strong> {requirement}",
   "DHLANG.Dialog.shareTooltip":           "Share to chat",
-  "DHLANG.Dialog.chatMessage":            "Known Languages: {languages}"
+  "DHLANG.Dialog.chatMessage":            "Known Languages: {languages}",
+
+  "DHLANG.Party.badgeTooltipNone":  "No languages known by the party",
+  "DHLANG.Party.badgeTooltipCount": "{count} language(s) known across the party",
+  "DHLANG.Party.dialogTitle":       "Party Languages — {name}",
+  "DHLANG.Party.noMembers":         "No party members assigned",
+  "DHLANG.Party.noSpeakers":        "—"
 }
