@@ -88,7 +88,10 @@ export function injectPartyLanguageBadge(app, html, actor) {
   });
 
   const tooltip = knownNames.length > 0
-    ? game.i18n.format('DHLANG.Party.badgeTooltipLanguages', { languages: knownNames.map(e => e.name).join(', ') })
+    ? game.i18n.format('DHLANG.Party.badgeTooltipLanguages', {
+        name:      actor.name,
+        languages: knownNames.map(e => e.name).join(', '),
+      })
     : game.i18n.localize('DHLANG.Party.badgeTooltipNone');
 
   const badge = document.createElement('span');

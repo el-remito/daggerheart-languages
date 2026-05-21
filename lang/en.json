@@ -93,7 +93,7 @@
   "DHLANG.Dialog.chatMessage":            "Known Languages: {languages}",
 
   "DHLANG.Party.badgeTooltipNone":       "No languages known by the party",
-  "DHLANG.Party.badgeTooltipLanguages":  "Party speaks: {languages}",
+  "DHLANG.Party.badgeTooltipLanguages":  "{name} knows the following languages:<br>{languages}",
   "DHLANG.Party.dialogTitle":            "Party Languages — {name}",
   "DHLANG.Party.noMembers":             "No party members assigned",
   "DHLANG.Party.noSpeakers":            "—",
