@@ -2,17 +2,6 @@ import { MODULE_ID, FLAGS, SETTINGS, ACTOR_TYPES } from '../constants.mjs';
 import { getAcquiredLanguageIds, findLanguage, calculatePointPool, resolveLanguageCost } from '../utils/languages.mjs';
 
 /**
- * Finds a language name by ID within the world config.
- * @param {string} id
- * @param {object} config
- * @returns {string|null}
- */
-function findLanguageName(id, config) {
-  const found = findLanguage(id, config);
-  return found?.language.name ?? null;
-}
-
-/**
  * Returns true if the actor can afford at least one unacquired language,
  * accounting for cousin discounts. Used to suppress the amber "unspent"
  * glow when the player has remaining points but nothing left they can buy.
@@ -66,10 +55,15 @@ async function openPartyLanguageOverview(actor) {
  * @param {Actor} actor
  */
 export function injectPartyLanguageBadge(app, html, actor) {
-  const nameRow = html.querySelector('.name-row');
-  if (!nameRow) return;
+  // The party sheet uses <header class="party-header-sheet"> with <h1 class="item-name">
+  // inside — different from character/adversary sheets which use .name-row / h1.actor-name.
+  const header = html.querySelector('.party-header-sheet');
+  if (!header) {
+    console.warn('daggerheart-languages | injectPartyLanguageBadge: .party-header-sheet not found');
+    return;
+  }
 
-  nameRow.querySelector('.dh-lang-badge')?.remove();
+  header.querySelector('.dh-lang-badge')?.remove();
 
   const config = game.settings.get(MODULE_ID, SETTINGS.CONFIG);
   const memberUuids = actor.system?.partyMembers ?? [];
@@ -96,7 +90,7 @@ export function injectPartyLanguageBadge(app, html, actor) {
 
   badge.addEventListener('click', () => openPartyLanguageOverview(actor));
 
-  nameRow.querySelector('h1.actor-name').insertAdjacentElement('afterend', badge);
+  header.querySelector('h1.item-name').insertAdjacentElement('afterend', badge);
 }
 
 /**
@@ -115,7 +109,12 @@ export async function injectLanguageBadge(app, html, actor) {
 
   const config = game.settings.get(MODULE_ID, SETTINGS.CONFIG);
   const acquiredIds = getAcquiredLanguageIds(actor);
-  const names = acquiredIds.map(id => findLanguageName(id, config)).filter(Boolean);
+  // Sort tooltip names: universal languages first (alpha), then the rest (alpha).
+  const names = acquiredIds
+    .map(id => { const f = findLanguage(id, config); return f ? { name: f.language.name, universal: !!f.language.universal } : null; })
+    .filter(Boolean)
+    .sort((a, b) => { if (a.universal !== b.universal) return a.universal ? -1 : 1; return a.name.localeCompare(b.name); })
+    .map(e => e.name);
   const isPC = actor.type === 'character';
   const tooltip = isPC
     ? (names.length
