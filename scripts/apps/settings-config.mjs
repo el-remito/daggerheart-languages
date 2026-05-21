@@ -213,6 +213,13 @@ export class LanguageSettingsConfig extends foundry.applications.api.HandlebarsA
       });
     }
 
+    for (const cb of el.querySelectorAll('[data-field="languageUniversal"]')) {
+      cb.addEventListener('change', e => {
+        const lang = this._findLanguage(e.currentTarget.dataset.categoryId, e.currentTarget.dataset.languageId);
+        if (lang) lang.universal = e.target.checked;
+      });
+    }
+
     for (const btn of el.querySelectorAll('[data-action="addCousin"]')) {
       btn.addEventListener('click', e => {
         this._addCousin(e.currentTarget.dataset.categoryId, e.currentTarget.dataset.languageId);
@@ -487,6 +494,7 @@ export class LanguageSettingsConfig extends foundry.applications.api.HandlebarsA
       cost:        null,
       requirement: null,
       description: null,
+      universal:   false,
       cousins:     [],
       costRules:   [],
     });

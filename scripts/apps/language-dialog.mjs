@@ -169,9 +169,12 @@ export class LanguageDialog extends foundry.applications.api.HandlebarsApplicati
     const acquiredLanguages = acquiredIds.map(id => {
       for (const cat of (config.categories ?? [])) {
         const lang = (cat.languages ?? []).find(l => l.id === id);
-        if (lang) return { id: lang.id, name: lang.name };
+        if (lang) return { id: lang.id, name: lang.name, universal: !!lang.universal };
       }
-      return { id, name: id };
+      return { id, name: id, universal: false };
+    }).sort((a, b) => {
+      if (a.universal !== b.universal) return a.universal ? -1 : 1;
+      return a.name.localeCompare(b.name);
     });
 
     return {

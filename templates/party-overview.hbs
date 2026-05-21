@@ -1,0 +1,41 @@
+<div class="dh-party-overview">
+
+  {{!-- Toolbar (only shown when there's content to filter) --}}
+  {{#unless noMembers}}{{#unless noLanguages}}
+  <div class="party-overview-toolbar">
+    <button type="button" data-action="toggleKnownFilter" class="dh-toggle-btn">
+      {{localize "DHLANG.Party.showOnlyKnown"}}
+    </button>
+  </div>
+  {{/unless}}{{/unless}}
+
+  {{!-- No members state --}}
+  {{#if noMembers}}
+  <p class="party-empty-hint">{{localize "DHLANG.Party.noMembers"}}</p>
+
+  {{!-- No languages configured state --}}
+  {{else if noLanguages}}
+  <p class="party-empty-hint">{{localize "DHLANG.Dialog.noLanguagesConfigured"}}</p>
+
+  {{!-- Language list — flat, sorted: universal first, then by cost then alpha --}}
+  {{else}}
+  {{#each languages}}
+  <div class="lang-row {{#unless this.hasSpeakers}}no-speakers{{/unless}}">
+    <span class="lang-name">
+      {{#if this.universal}}<span class="lang-universal-pip" data-tooltip="Universal">★</span>{{/if}}
+      {{this.name}}
+    </span>
+    <div class="lang-speakers">
+      {{#if this.hasSpeakers}}
+        {{#each this.speakerNames}}
+        <span class="dh-speaker-chip">{{this}}</span>
+        {{/each}}
+      {{else}}
+        <span class="no-speakers-dash">{{../noSpeakersLabel}}</span>
+      {{/if}}
+    </div>
+  </div>
+  {{/each}}
+  {{/if}}
+
+</div>

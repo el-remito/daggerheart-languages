@@ -15,6 +15,8 @@ A [Foundry VTT](https://foundryvtt.com/) module for the [Daggerheart](https://da
 - **Badge** — a small icon is injected into every actor sheet header showing acquired languages on hover. It glows amber when the player can afford a new language and red if they have overspent.
 - **Acquisition dialog** — players click the badge to open a dialog listing all available languages grouped by category, with live affordability and requirement checking, a real-time search bar, and per-category acquired/total counters.
 - **Adversary support** — adversaries can be assigned languages freely (no cost or requirement enforcement).
+- **Party overview** — a language badge is injected into the Party actor sheet header. Hovering lists every language known by the party; clicking opens a read-only overview showing all configured languages alongside which party members speak each one. A **Show only known** toggle filters the list down to languages at least one member speaks. Accessible to all users, not just the GM.
+- **Universal languages** — individual languages can be flagged as *Universal* (e.g. Common) in the settings config. Universal languages sort to the top of the party overview, character badge tooltips, and the acquired languages section in the acquisition dialog.
 
 ---
 
@@ -99,6 +101,14 @@ Example: `2 + @traits.knowledge.value + @system.levelData.level.current`
 ---
 
 ## Changelog
+
+### 1.2.0
+- **Party language overview** — language badge injected into Party actor sheet header; hovering lists languages known by the party; clicking opens a read-only overview dialog organised as a flat list (universal languages first, then remaining languages by acquisition cost ascending, then alphabetically)
+- **Party overview — speaker chips** — each language row shows small chips for every party member who speaks it; languages nobody knows are dimmed
+- **Party overview — Show only known toggle** — filter button in the overview dialog hides languages with no speakers for a quick reference view
+- **Universal language flag** — GMs can mark any language as *Universal* in the Settings config (e.g. Common); universal languages sort to the top of the party overview, character badge tooltips, and the acquired languages section
+- **Acquired languages sorting** — the acquired languages section in a character's dialog now lists universal languages first, then the rest alphabetically
+- **Badge tooltip sorting** — character and party badge tooltips list universal languages first, then the rest alphabetically
 
 ### 1.1.2
 - Point pool formula hint and `README` corrected: `@level` → `@system.levelData.level.current`, `@proficiency` → `@prof`

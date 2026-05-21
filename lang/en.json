@@ -32,6 +32,7 @@
   "DHLANG.Settings.costRuleRequirement":   "Requirement",
   "DHLANG.Settings.costRuleDiscountAmount": "Discount Amount",
   "DHLANG.Settings.confirmDeleteCostRule": "Remove this cost rule?",
+  "DHLANG.Settings.languageUniversal":     "Universal (e.g. Common — spoken by everyone)",
 
   "DHLANG.Search.placeholder": "Search languages, categories or their descriptions…",
 
@@ -89,5 +90,13 @@
   "DHLANG.Dialog.relatedLanguages":       "Related Languages",
   "DHLANG.Dialog.specialCost":            "<strong>Special Discount:</strong> {requirement}",
   "DHLANG.Dialog.shareTooltip":           "Share to chat",
-  "DHLANG.Dialog.chatMessage":            "Known Languages: {languages}"
+  "DHLANG.Dialog.chatMessage":            "Known Languages: {languages}",
+
+  "DHLANG.Party.badgeTooltipNone":       "No languages known by the party",
+  "DHLANG.Party.badgeTooltipLanguages":  "{name} knows the following languages:<br>{languages}",
+  "DHLANG.Party.dialogTitle":            "Party Languages — {name}",
+  "DHLANG.Party.noMembers":             "No party members assigned",
+  "DHLANG.Party.noSpeakers":            "—",
+  "DHLANG.Party.showOnlyKnown":         "Show only known",
+  "DHLANG.Party.showAll":               "Show all languages"
 }
