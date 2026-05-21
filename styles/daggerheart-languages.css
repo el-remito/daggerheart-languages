@@ -814,6 +814,16 @@
 
 /* ── Party Language Overview ─────────────────────────────────────────────── */
 
+/* Make the party name h1 lay out children (input + badge) in a single row.
+   The system CSS leaves h1.item-name as a block; we flex it to sit the badge
+   right next to the name input rather than below it. */
+.party-header-sheet h1.item-name {
+  display:         flex;
+  align-items:     center;
+  justify-content: center;
+  gap:             0.4em;
+}
+
 #dh-party-language-overview .window-content {
   overflow-y:      auto;
   scrollbar-width: thin;

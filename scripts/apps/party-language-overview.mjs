@@ -31,10 +31,9 @@ export class PartyLanguageOverview extends foundry.applications.api.HandlebarsAp
   async _prepareContext(_options) {
     const config = game.settings.get(MODULE_ID, SETTINGS.CONFIG);
 
-    // Resolve character-type party members.
-    const memberUuids = this.actor.system?.partyMembers ?? [];
-    const members = memberUuids
-      .map(uuid => fromUuidSync(uuid))
+    // actor.system.partyMembers is already an array of resolved Actor documents
+    // (ForeignDocumentUUIDField auto-resolves at access time — no fromUuidSync needed).
+    const members = (this.actor.system?.partyMembers ?? [])
       .filter(a => a && a.type === ACTOR_TYPES.PC);
 
     // Build per-member acquired language ID sets for fast lookup.

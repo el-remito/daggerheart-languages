@@ -66,9 +66,9 @@ export function injectPartyLanguageBadge(app, html, actor) {
   header.querySelector('.dh-lang-badge')?.remove();
 
   const config = game.settings.get(MODULE_ID, SETTINGS.CONFIG);
-  const memberUuids = actor.system?.partyMembers ?? [];
-  const members = memberUuids
-    .map(uuid => fromUuidSync(uuid))
+  // actor.system.partyMembers is already an array of resolved Actor documents
+  // (ForeignDocumentUUIDField auto-resolves at access time — no fromUuidSync needed).
+  const members = (actor.system?.partyMembers ?? [])
     .filter(a => a && a.type === ACTOR_TYPES.PC);
 
   // Count unique languages known across all party members.
@@ -90,7 +90,9 @@ export function injectPartyLanguageBadge(app, html, actor) {
 
   badge.addEventListener('click', () => openPartyLanguageOverview(actor));
 
-  header.querySelector('h1.item-name').insertAdjacentElement('afterend', badge);
+  // Insert badge as last child of h1.item-name so it sits inline next to the name
+  // input. Combined with the flex CSS on h1.item-name it appears right-adjacent.
+  header.querySelector('h1.item-name').insertAdjacentElement('beforeend', badge);
 }
 
 /**
