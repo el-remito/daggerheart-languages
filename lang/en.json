@@ -92,9 +92,11 @@
   "DHLANG.Dialog.shareTooltip":           "Share to chat",
   "DHLANG.Dialog.chatMessage":            "Known Languages: {languages}",
 
-  "DHLANG.Party.badgeTooltipNone":  "No languages known by the party",
-  "DHLANG.Party.badgeTooltipCount": "{count} language(s) known across the party",
-  "DHLANG.Party.dialogTitle":       "Party Languages — {name}",
-  "DHLANG.Party.noMembers":         "No party members assigned",
-  "DHLANG.Party.noSpeakers":        "—"
+  "DHLANG.Party.badgeTooltipNone":       "No languages known by the party",
+  "DHLANG.Party.badgeTooltipLanguages":  "Party speaks: {languages}",
+  "DHLANG.Party.dialogTitle":            "Party Languages — {name}",
+  "DHLANG.Party.noMembers":             "No party members assigned",
+  "DHLANG.Party.noSpeakers":            "—",
+  "DHLANG.Party.showOnlyKnown":         "Show only known",
+  "DHLANG.Party.showAll":               "Show all languages"
 }

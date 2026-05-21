@@ -824,6 +824,12 @@
   gap:             0.4em;
 }
 
+/* The party h1 has a large font-size (32px); use rem so the badge inherits
+   from root instead of the h1, matching the visual size of character badges. */
+.party-header-sheet .dh-lang-badge {
+  font-size: 0.85rem;
+}
+
 #dh-party-language-overview .window-content {
   overflow-y:      auto;
   scrollbar-width: thin;
@@ -842,6 +848,35 @@
   gap:            0.15rem;
   font-family:    inherit;
   color:          #ddd;
+}
+
+/* Toolbar row — filter toggle button */
+.dh-party-overview .party-overview-toolbar {
+  display:         flex;
+  justify-content: flex-end;
+  padding-bottom:  0.4em;
+  border-bottom:   1px solid rgba(255, 255, 255, 0.08);
+  margin-bottom:   0.1em;
+}
+
+.dh-party-overview .dh-toggle-btn {
+  padding:       0.2em 0.75em;
+  border:        1px solid rgba(201, 170, 113, 0.4);
+  border-radius: 3px;
+  background:    rgba(201, 170, 113, 0.08);
+  color:         #c9aa71;
+  font-size:     0.8em;
+  cursor:        pointer;
+  transition:    background 0.15s;
+}
+
+.dh-party-overview .dh-toggle-btn:hover {
+  background: rgba(201, 170, 113, 0.2);
+}
+
+/* When filter is active, hide rows with no speakers */
+.dh-party-overview.filter-known .lang-row.no-speakers {
+  display: none;
 }
 
 .dh-party-overview .party-empty-hint {

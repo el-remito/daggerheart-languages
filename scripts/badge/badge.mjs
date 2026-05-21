@@ -71,15 +71,24 @@ export function injectPartyLanguageBadge(app, html, actor) {
   const members = (actor.system?.partyMembers ?? [])
     .filter(a => a && a.type === ACTOR_TYPES.PC);
 
-  // Count unique languages known across all party members.
-  const knownIds = new Set();
+  // Collect unique language names across all party members, sorted: universal first (alpha), rest alpha.
+  const knownNames = [];
+  const seenIds = new Set();
   for (const member of members) {
-    for (const id of getAcquiredLanguageIds(member)) knownIds.add(id);
+    for (const id of getAcquiredLanguageIds(member)) {
+      if (seenIds.has(id)) continue;
+      seenIds.add(id);
+      const found = findLanguage(id, config);
+      if (found) knownNames.push({ name: found.language.name, universal: !!found.language.universal });
+    }
   }
-  const count = knownIds.size;
+  knownNames.sort((a, b) => {
+    if (a.universal !== b.universal) return a.universal ? -1 : 1;
+    return a.name.localeCompare(b.name);
+  });
 
-  const tooltip = count > 0
-    ? game.i18n.format('DHLANG.Party.badgeTooltipCount', { count })
+  const tooltip = knownNames.length > 0
+    ? game.i18n.format('DHLANG.Party.badgeTooltipLanguages', { languages: knownNames.map(e => e.name).join(', ') })
     : game.i18n.localize('DHLANG.Party.badgeTooltipNone');
 
   const badge = document.createElement('span');

@@ -28,6 +28,19 @@ export class PartyLanguageOverview extends foundry.applications.api.HandlebarsAp
     new PartyLanguageOverview({ actor }).render(true);
   }
 
+  _onRender(_context, _options) {
+    const toggleBtn = this.element.querySelector('[data-action="toggleKnownFilter"]');
+    if (toggleBtn) {
+      toggleBtn.addEventListener('click', () => {
+        const root = this.element.querySelector('.dh-party-overview');
+        const active = root.classList.toggle('filter-known');
+        toggleBtn.textContent = game.i18n.localize(
+          active ? 'DHLANG.Party.showAll' : 'DHLANG.Party.showOnlyKnown'
+        );
+      });
+    }
+  }
+
   async _prepareContext(_options) {
     const config = game.settings.get(MODULE_ID, SETTINGS.CONFIG);
 

@@ -1,5 +1,14 @@
 <div class="dh-party-overview">
 
+  {{!-- Toolbar (only shown when there's content to filter) --}}
+  {{#unless noMembers}}{{#unless noLanguages}}
+  <div class="party-overview-toolbar">
+    <button type="button" data-action="toggleKnownFilter" class="dh-toggle-btn">
+      {{localize "DHLANG.Party.showOnlyKnown"}}
+    </button>
+  </div>
+  {{/unless}}{{/unless}}
+
   {{!-- No members state --}}
   {{#if noMembers}}
   <p class="party-empty-hint">{{localize "DHLANG.Party.noMembers"}}</p>
