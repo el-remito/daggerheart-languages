@@ -102,6 +102,11 @@ Example: `2 + @traits.knowledge.value + @system.levelData.level.current`
 
 ## Changelog
 
+### 1.2.2
+- **Adversary dialog — hide cost UI** — cost labels, ⓘ info badges, and the acquired ✓ checkmark are now hidden for adversary actors; adversaries don't operate under purchase rules so this information was irrelevant
+- **Requirement matching — contains** — `hasFeature:` and `classIs:` conditions now use substring matching instead of exact name equality, so `hasFeature:Arcane` matches any feature whose name contains "Arcane"
+- **Search bar fix** — typing in the language dialog search bar now correctly expands matching categories so their languages are visible; clearing the search restores original collapsed/expanded states
+
 ### 1.2.1
 - **Party overview — sort fix** — non-universal languages in the party overview are now sorted alphabetically (previously sorted by acquisition cost, then alphabetically)
 

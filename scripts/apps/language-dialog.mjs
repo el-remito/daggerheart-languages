@@ -211,24 +211,44 @@ export class LanguageDialog extends foundry.applications.api.HandlebarsApplicati
     // Search bar — filters language rows and hides empty categories in real time.
     // Matches against: language name, language description, category name, category description.
     // If the category name/description matches, all its languages are shown.
+    // Matching categories are force-opened (<details open>) so their content is visible.
     const searchInput = this.element.querySelector('.dh-lang-search');
     if (searchInput) {
+      let savedOpenState = null;
       searchInput.addEventListener('input', () => {
         const query = searchInput.value.trim().toLowerCase();
-        for (const category of this.element.querySelectorAll('.lang-category')) {
-          const catName = category.querySelector('.lang-category-title')?.textContent.toLowerCase() ?? '';
-          const catDesc = category.querySelector('.lang-category-description')?.textContent.toLowerCase() ?? '';
-          const categoryMatches = !query || catName.includes(query) || catDesc.includes(query);
+        const categoryEls = [...this.element.querySelectorAll('.lang-category')];
+
+        if (savedOpenState === null) {
+          savedOpenState = new Map(categoryEls.map(c => [c, c.open]));
+        }
+
+        if (!query) {
+          for (const cat of categoryEls) {
+            cat.hidden = false;
+            cat.open = savedOpenState.get(cat) ?? false;
+            for (const row of cat.querySelectorAll('.lang-row')) row.hidden = false;
+          }
+          return;
+        }
+
+        for (const cat of categoryEls) {
+          const catName = cat.querySelector('.lang-category-title')?.textContent.toLowerCase() ?? '';
+          const catDesc = cat.querySelector('.lang-category-description')?.textContent.toLowerCase() ?? '';
+          const categoryMatches = catName.includes(query) || catDesc.includes(query);
 
           let anyVisible = false;
-          for (const row of category.querySelectorAll('.lang-row')) {
+          for (const row of cat.querySelectorAll('.lang-row')) {
             const name = row.querySelector('.lang-name')?.textContent.toLowerCase() ?? '';
             const desc = row.querySelector('.lang-description')?.textContent.toLowerCase() ?? '';
             const match = categoryMatches || name.includes(query) || desc.includes(query);
             row.hidden = !match;
             if (match) anyVisible = true;
           }
-          category.hidden = !anyVisible && !categoryMatches;
+
+          const visible = anyVisible || categoryMatches;
+          cat.hidden = !visible;
+          if (visible) cat.open = true;
         }
       });
     }

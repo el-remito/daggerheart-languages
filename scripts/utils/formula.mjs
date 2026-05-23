@@ -100,7 +100,7 @@ async function _evaluateAtom(req, actor) {
     if (!featureName) return true;
     try {
       return actor.items.some(
-        i => i.type === 'feature' && i.name.toLowerCase() === featureName.toLowerCase()
+        i => i.type === 'feature' && i.name.toLowerCase().includes(featureName.toLowerCase())
       );
     } catch (_) { return true; }
   }
@@ -164,7 +164,7 @@ async function _evaluateAtom(req, actor) {
     const className = req.slice('classIs:'.length).trim().toLowerCase();
     if (!className) return true;
     try {
-      return actor.items.some(i => i.type === 'class' && i.name?.toLowerCase() === className);
+      return actor.items.some(i => i.type === 'class' && i.name?.toLowerCase().includes(className));
     } catch (_) { return true; }
   }
 
