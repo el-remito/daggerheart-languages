@@ -76,10 +76,9 @@ export class PartyLanguageOverview extends foundry.applications.api.HandlebarsAp
       }
     }
 
-    // Sort: universal first (alpha), then by originalCost ascending, then alpha.
+    // Sort: universal first, both groups alphabetized.
     flat.sort((a, b) => {
       if (a.universal !== b.universal) return a.universal ? -1 : 1;
-      if (a.originalCost !== b.originalCost) return a.originalCost - b.originalCost;
       return a.name.localeCompare(b.name);
     });
 

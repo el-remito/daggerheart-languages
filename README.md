@@ -102,6 +102,9 @@ Example: `2 + @traits.knowledge.value + @system.levelData.level.current`
 
 ## Changelog
 
+### 1.2.1
+- **Party overview — sort fix** — non-universal languages in the party overview are now sorted alphabetically (previously sorted by acquisition cost, then alphabetically)
+
 ### 1.2.0
 - **Party language overview** — language badge injected into Party actor sheet header; hovering lists languages known by the party; clicking opens a read-only overview dialog organised as a flat list (universal languages first, then remaining languages by acquisition cost ascending, then alphabetically)
 - **Party overview — speaker chips** — each language row shows small chips for every party member who speaks it; languages nobody knows are dimmed
