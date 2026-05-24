@@ -66,6 +66,16 @@ export class LanguageDialog extends foundry.applications.api.HandlebarsApplicati
     if (pool) {
       pool.percent   = pool.total > 0 ? Math.min(100, Math.round((pool.spent / pool.total) * 100)) : 0;
       pool.overspent = pool.spent > pool.total;
+      pool.breakdownLines = pool.breakdown.map(entry => entry.isBase
+        ? { label: game.i18n.localize('DHLANG.Dialog.poolBreakdownBase'), value: entry.value, sign: '' }
+        : {
+            label:    entry.label ?? game.i18n.localize('DHLANG.Dialog.poolBreakdownBonus'),
+            value:    Math.abs(entry.value),
+            sign:     entry.value >= 0 ? '+' : '−',
+            negative: entry.value < 0,
+          }
+      );
+      pool.hasRules = pool.breakdown.length > 1;
     }
 
     const categories = [];

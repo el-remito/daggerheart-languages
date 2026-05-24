@@ -3,7 +3,8 @@ import { LanguageSettingsConfig } from './apps/settings-config.mjs';
 
 const DEFAULT_CONFIG = {
   pointFormula: '2',
-  categories: [],
+  pointRules:   [],
+  categories:   [],
 };
 
 export function registerSettings() {

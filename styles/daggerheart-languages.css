@@ -691,6 +691,71 @@
   font-size:     1em;
 }
 
+/* Point pool rules section */
+.dh-settings-config .point-rules-section {
+  display:        flex;
+  flex-direction: column;
+  gap:            0.4em;
+}
+
+.dh-settings-config .point-rules-heading {
+  color:          #c9aa71;
+  font-size:      0.85em;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin:         0 0 0.1em;
+  font-weight:    700;
+}
+
+.dh-settings-config .point-rule-row {
+  display:     flex;
+  align-items: flex-start;
+  flex-wrap:   wrap;
+  gap:         0.5em;
+  padding:     0.4em 0;
+  border-top:  1px solid rgba(255, 255, 255, 0.05);
+}
+
+.dh-settings-config .point-rule-row .requirement-group {
+  flex: 1 1 100%;
+}
+
+.dh-settings-config .point-rule-modifier {
+  display:        flex;
+  align-items:    center;
+  flex-direction: row;
+  flex-wrap:      nowrap;
+  gap:            0.3em;
+  font-size:      0.82em;
+  color:          #aaa;
+}
+
+.dh-settings-config .point-rule-modifier input {
+  width:         5em;
+  background:    rgba(255, 255, 255, 0.06);
+  border:        1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 3px;
+  padding:       0.2em 0.3em;
+  color:         #eee;
+  font-size:     1em;
+}
+
+.dh-settings-config .point-rule-label-field {
+  flex:      1 1 8em;
+  font-size: 0.82em;
+  color:     #aaa;
+}
+
+.dh-settings-config .point-rule-label-field input {
+  width:         100%;
+  background:    rgba(255, 255, 255, 0.06);
+  border:        1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 3px;
+  padding:       0.2em 0.3em;
+  color:         #eee;
+  font-size:     1em;
+}
+
 /* Buttons */
 .dh-settings-config .add-btn {
   margin-top:    0.3em;
@@ -783,6 +848,58 @@
 
 .dh-languages-dialog .point-formula-info:hover {
   color: #c9aa71;
+}
+
+/* Pool breakdown collapsible */
+.dh-languages-dialog .pool-breakdown {
+  font-size: 0.82em;
+  color:     #aaa;
+}
+
+.dh-languages-dialog .pool-breakdown-toggle {
+  cursor:      pointer;
+  color:       rgba(201, 170, 113, 0.7);
+  user-select: none;
+  list-style:  none;
+  padding:     0.1em 0;
+}
+
+.dh-languages-dialog .pool-breakdown-toggle::-webkit-details-marker {
+  display: none;
+}
+
+.dh-languages-dialog .pool-breakdown-toggle::before {
+  content:   "▶ ";
+  font-size: 0.75em;
+}
+
+.dh-languages-dialog .pool-breakdown[open] .pool-breakdown-toggle::before {
+  content: "▼ ";
+}
+
+.dh-languages-dialog .pool-breakdown-list {
+  list-style:     none;
+  margin:         0.25em 0 0;
+  padding:        0 0 0 0.5em;
+  display:        flex;
+  flex-direction: column;
+  gap:            0.15em;
+}
+
+.dh-languages-dialog .pool-breakdown-item {
+  display:         flex;
+  justify-content: space-between;
+  gap:             1em;
+}
+
+.dh-languages-dialog .pool-breakdown-value {
+  font-weight: 600;
+  color:       #c9aa71;
+  flex-shrink: 0;
+}
+
+.dh-languages-dialog .pool-breakdown-item.is-negative .pool-breakdown-value {
+  color: #c96060;
 }
 
 /* ── Search Bar (shared by dialog and settings) ─────────────────────────── */

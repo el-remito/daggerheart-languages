@@ -307,6 +307,36 @@ export class LanguageSettingsConfig extends foundry.applications.api.HandlebarsA
       });
     }
 
+    el.querySelector('[data-action="addPointRule"]')
+      ?.addEventListener('click', () => this._addPointRule());
+
+    for (const btn of el.querySelectorAll('[data-action="removePointRule"]')) {
+      btn.addEventListener('click', e => {
+        this._removePointRule(e.currentTarget.dataset.ruleId);
+      });
+    }
+
+    for (const input of el.querySelectorAll('[data-field="pointRuleCondition"]')) {
+      input.addEventListener('input', e => {
+        const rule = this._findPointRule(e.currentTarget.dataset.ruleId);
+        if (rule) rule.condition = e.target.value || '';
+      });
+    }
+
+    for (const input of el.querySelectorAll('[data-field="pointRuleModifier"]')) {
+      input.addEventListener('input', e => {
+        const rule = this._findPointRule(e.currentTarget.dataset.ruleId);
+        if (rule) rule.modifier = e.target.value;
+      });
+    }
+
+    for (const input of el.querySelectorAll('[data-field="pointRuleLabel"]')) {
+      input.addEventListener('input', e => {
+        const rule = this._findPointRule(e.currentTarget.dataset.ruleId);
+        if (rule) rule.label = e.target.value || null;
+      });
+    }
+
     // Search bar — filters config-language blocks and hides empty categories in real time.
     // Matches against: language name, language description, category name, category description.
     // If the category name/description matches, all its languages are shown.
@@ -471,6 +501,30 @@ export class LanguageSettingsConfig extends foundry.applications.api.HandlebarsA
 
   _findCostRule(categoryId, languageId, index) {
     return this._findLanguage(categoryId, languageId)?.costRules?.[index] ?? null;
+  }
+
+  _findPointRule(ruleId) {
+    return (this.#config.pointRules ?? []).find(r => r.id === ruleId) ?? null;
+  }
+
+  _addPointRule() {
+    (this.#config.pointRules ??= []).push({
+      id:        foundry.utils.randomID(),
+      condition: '',
+      modifier:  '0',
+      label:     null,
+    });
+    this.render();
+  }
+
+  async _removePointRule(ruleId) {
+    const confirmed = await foundry.applications.api.DialogV2.confirm({
+      window:  { title: game.i18n.localize('DHLANG.Settings.confirmDeleteTitle') },
+      content: `<p>${game.i18n.localize('DHLANG.Settings.confirmDeletePointRule')}</p>`,
+    });
+    if (!confirmed) return;
+    this.#config.pointRules = (this.#config.pointRules ?? []).filter(r => r.id !== ruleId);
+    this.render();
   }
 
   _addCategory() {
@@ -666,6 +720,15 @@ export class LanguageSettingsConfig extends foundry.applications.api.HandlebarsA
     const pointTotal = await check(this.#config.pointFormula, 'Point Formula');
     if (pointTotal !== null && pointTotal <= 0) {
       errors.push(game.i18n.format('DHLANG.Settings.validationError', { error: 'Point Formula must resolve to a positive integer' }));
+    }
+
+    // ── Validate point pool rules ─────────────────────────────────────────
+    for (const [i, rule] of (this.#config.pointRules ?? []).entries()) {
+      const ruleLabel = rule.label || `Point Rule #${i + 1}`;
+      if (rule.modifier !== null && rule.modifier !== '')
+        await check(rule.modifier, `${ruleLabel} modifier`);
+      if (rule.condition)
+        await checkRequirement(rule.condition, `${ruleLabel} condition`);
     }
 
     // ── Validate categories, languages, cousins ───────────────────────────

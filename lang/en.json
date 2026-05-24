@@ -33,6 +33,14 @@
   "DHLANG.Settings.costRuleDiscountAmount": "Discount Amount",
   "DHLANG.Settings.confirmDeleteCostRule": "Remove this cost rule?",
   "DHLANG.Settings.languageUniversal":     "Universal (e.g. Common — spoken by everyone)",
+  "DHLANG.Settings.pointRules":                "Point Pool Rules",
+  "DHLANG.Settings.pointRulesHint":            "Rules whose condition matches the actor add or subtract from the base formula total. All matching rules stack.",
+  "DHLANG.Settings.pointRuleCondition":        "Condition",
+  "DHLANG.Settings.pointRuleModifier":         "Modifier",
+  "DHLANG.Settings.pointRuleLabel":            "Label (optional)",
+  "DHLANG.Settings.pointRuleLabelPlaceholder": "e.g. Highborne Bonus",
+  "DHLANG.Settings.addPointRule":              "Add Point Rule",
+  "DHLANG.Settings.confirmDeletePointRule":    "Remove this point pool rule?",
 
   "DHLANG.Search.placeholder": "Search languages, categories or their descriptions…",
 
@@ -97,6 +105,9 @@
   "DHLANG.Dialog.specialCost":            "<strong>Special Discount:</strong> {requirement}",
   "DHLANG.Dialog.shareTooltip":           "Share to chat",
   "DHLANG.Dialog.chatMessage":            "Known Languages: {languages}",
+  "DHLANG.Dialog.poolBreakdownToggle":    "Point breakdown",
+  "DHLANG.Dialog.poolBreakdownBase":      "Base",
+  "DHLANG.Dialog.poolBreakdownBonus":     "Bonus",
 
   "DHLANG.Party.badgeTooltipNone":       "No languages known by the party",
   "DHLANG.Party.badgeTooltipLanguages":  "{name} knows the following languages:<br>{languages}",

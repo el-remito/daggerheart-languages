@@ -12,6 +12,19 @@
     </div>
     <span class="point-values">{{pool.spent}} / {{pool.total}}</span>
   </div>
+  {{#if pool.hasRules}}
+  <details class="pool-breakdown">
+    <summary class="pool-breakdown-toggle">{{localize "DHLANG.Dialog.poolBreakdownToggle"}}</summary>
+    <ul class="pool-breakdown-list">
+      {{#each pool.breakdownLines}}
+      <li class="pool-breakdown-item {{#if this.negative}}is-negative{{/if}}">
+        <span class="pool-breakdown-label">{{this.label}}</span>
+        <span class="pool-breakdown-value">{{this.sign}}{{this.value}}</span>
+      </li>
+      {{/each}}
+    </ul>
+  </details>
+  {{/if}}
   {{/if}}
 
   {{!-- Adversary note --}}

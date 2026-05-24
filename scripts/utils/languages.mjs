@@ -120,10 +120,24 @@ export function resolveEffectiveRequirement(language, category, requirementWaive
  *
  * @param {Actor} actor
  * @param {object} config
- * @returns {Promise<{ total: number, spent: number, remaining: number }>}
+ * @returns {Promise<{ total: number, base: number, rulesTotal: number, breakdown: object[], spent: number, remaining: number }>}
  */
 export async function calculatePointPool(actor, config) {
-  const total = await evaluateFormula(config.pointFormula ?? '2', actor);
+  const base = await evaluateFormula(config.pointFormula ?? '2', actor);
+  const breakdown = [{ label: null, value: base, isBase: true }];
+  let rulesTotal = 0;
+
+  for (const rule of (config.pointRules ?? [])) {
+    try {
+      const passes = await evaluateRequirement(rule.condition, actor);
+      if (!passes) continue;
+      const mod = await evaluateFormula(String(rule.modifier ?? '0'), actor);
+      rulesTotal += mod;
+      breakdown.push({ label: rule.label || null, value: mod, isBase: false });
+    } catch (_) { /* skip malformed rules silently */ }
+  }
+
+  const total = base + rulesTotal;
   const acquiredIds = getAcquiredLanguageIds(actor);
 
   let spent = 0;
@@ -134,5 +148,5 @@ export async function calculatePointPool(actor, config) {
     spent += effectiveCost;
   }
 
-  return { total, spent, remaining: total - spent };
+  return { total, base, rulesTotal, breakdown, spent, remaining: total - spent };
 }
