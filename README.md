@@ -105,6 +105,9 @@ Example: `2 + @traits.knowledge.value + @system.levelData.level.current`
 
 ## Changelog
 
+### 1.3.2
+- **Template render fix** — corrected a regression introduced in 1.3.1 that caused the language dialog to fail to open with a "must render a single HTML element" error
+
 ### 1.3.1
 - **Special Discounts layout fix** — grouped discount rows (languages with multiple qualifying discounts) now stack vertically instead of rendering the options list to the right of the language name; the "Best of:" label is also no longer invalid HTML
 - **Point Pool Rules arrow fix** — the collapse arrow in the Point Pool Rules section of Language Configuration now rotates correctly when the section is expanded
