@@ -455,6 +455,10 @@
   transform: rotate(90deg);
 }
 
+.dh-settings-config .point-rules-section[open] > .point-rules-header .dh-collapse-arrow {
+  transform: rotate(90deg);
+}
+
 /* Language count badge in category header */
 .dh-settings-config .category-lang-count {
   font-size:   0.78em;
@@ -959,6 +963,11 @@
   justify-content: space-between;
   gap:             0.5em;
   align-items:     baseline;
+}
+
+.dh-languages-dialog .active-discount-item.has-multiple {
+  flex-direction: column;
+  align-items:    flex-start;
 }
 
 .dh-languages-dialog .active-discount-item.is-acquired {
