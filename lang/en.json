@@ -59,6 +59,10 @@
   "DHLANG.Picker.typeLevelAtLeast":    "Level at Least",
   "DHLANG.Picker.typeClassIs":         "Class Is",
   "DHLANG.Picker.className":           "Class name",
+  "DHLANG.Picker.typeCommunityIs":     "Community Is",
+  "DHLANG.Picker.communityName":       "Community name",
+  "DHLANG.Picker.typeAncestryIs":      "Ancestry Is",
+  "DHLANG.Picker.ancestryName":        "Ancestry name",
 
   "DHLANG.Requirement.hasFeature":      "Must have feature: {value}",
   "DHLANG.Requirement.hasDomain":       "Must have domain: {value}",
@@ -67,6 +71,8 @@
   "DHLANG.Requirement.tierAtLeast":    "Must have Tier {value} or higher",
   "DHLANG.Requirement.levelAtLeast":   "Must have Level {value} or higher",
   "DHLANG.Requirement.classIs":        "Must be a {value}",
+  "DHLANG.Requirement.communityIs":   "Must be from a {value} community",
+  "DHLANG.Requirement.ancestryIs":    "Must be of {value} ancestry",
 
   "DHLANG.Badge.noLanguages":       "This creature speaks no known languages",
   "DHLANG.Badge.speaksLanguages":   "This creature speaks the following languages: {languages}",

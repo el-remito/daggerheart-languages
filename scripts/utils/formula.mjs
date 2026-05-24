@@ -35,6 +35,14 @@ function _formatAtom(req) {
     const value = req.slice('classIs:'.length).trim();
     return game.i18n.format('DHLANG.Requirement.classIs', { value });
   }
+  if (req.startsWith('communityIs:')) {
+    const value = req.slice('communityIs:'.length).trim();
+    return game.i18n.format('DHLANG.Requirement.communityIs', { value });
+  }
+  if (req.startsWith('ancestryIs:')) {
+    const value = req.slice('ancestryIs:'.length).trim();
+    return game.i18n.format('DHLANG.Requirement.ancestryIs', { value });
+  }
   // Plain math formula — return as-is.
   return req;
 }
@@ -165,6 +173,26 @@ async function _evaluateAtom(req, actor) {
     if (!className) return true;
     try {
       return actor.items.some(i => i.type === 'class' && i.name?.toLowerCase().includes(className));
+    } catch (_) { return true; }
+  }
+
+  // ── Keyword: communityIs:CommunityName ───────────────────────────────────
+  if (req.startsWith('communityIs:')) {
+    if (actor.type !== 'character') return true;
+    const communityName = req.slice('communityIs:'.length).trim().toLowerCase();
+    if (!communityName) return true;
+    try {
+      return actor.items.some(i => i.type === 'community' && i.name?.toLowerCase().includes(communityName));
+    } catch (_) { return true; }
+  }
+
+  // ── Keyword: ancestryIs:AncestryName ─────────────────────────────────────
+  if (req.startsWith('ancestryIs:')) {
+    if (actor.type !== 'character') return true;
+    const ancestryName = req.slice('ancestryIs:'.length).trim().toLowerCase();
+    if (!ancestryName) return true;
+    try {
+      return actor.items.some(i => i.type === 'ancestry' && i.name?.toLowerCase().includes(ancestryName));
     } catch (_) { return true; }
   }
 

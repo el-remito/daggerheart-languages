@@ -361,6 +361,8 @@ export class LanguageSettingsConfig extends foundry.applications.api.HandlebarsA
         if (type === 'tierAtLeast')  wrapper.querySelector('.picker-sub--tier-at-least').hidden = false;
         if (type === 'levelAtLeast') wrapper.querySelector('.picker-sub--level-at-least').hidden = false;
         if (type === 'classIs')      wrapper.querySelector('.picker-sub--class').hidden         = false;
+        if (type === 'communityIs')  wrapper.querySelector('.picker-sub--community').hidden     = false;
+        if (type === 'ancestryIs')   wrapper.querySelector('.picker-sub--ancestry').hidden      = false;
         // 'hasSpellcasting' and 'custom' need no sub-fields.
       };
 
@@ -401,6 +403,14 @@ export class LanguageSettingsConfig extends foundry.applications.api.HandlebarsA
           case 'classIs': {
             const cls = wrapper.querySelector('.picker-class-name')?.value.trim();
             return cls ? `classIs:${cls}` : '';
+          }
+          case 'communityIs': {
+            const name = wrapper.querySelector('.picker-community-name')?.value.trim();
+            return name ? `communityIs:${name}` : '';
+          }
+          case 'ancestryIs': {
+            const name = wrapper.querySelector('.picker-ancestry-name')?.value.trim();
+            return name ? `ancestryIs:${name}` : '';
           }
           case 'custom':
           default:
@@ -624,6 +634,20 @@ export class LanguageSettingsConfig extends foundry.applications.api.HandlebarsA
         const cls = req.slice('classIs:'.length).trim();
         if (!cls) errors.push(game.i18n.format('DHLANG.Settings.validationError', {
           error: `${label}: classIs requires a class name (e.g. classIs:Warrior)`,
+        }));
+        return;
+      }
+      if (req.startsWith('communityIs:')) {
+        const val = req.slice('communityIs:'.length).trim();
+        if (!val) errors.push(game.i18n.format('DHLANG.Settings.validationError', {
+          error: `${label}: communityIs requires a community name (e.g. communityIs:Wanderborne)`,
+        }));
+        return;
+      }
+      if (req.startsWith('ancestryIs:')) {
+        const val = req.slice('ancestryIs:'.length).trim();
+        if (!val) errors.push(game.i18n.format('DHLANG.Settings.validationError', {
+          error: `${label}: ancestryIs requires an ancestry name (e.g. ancestryIs:Elf)`,
         }));
         return;
       }

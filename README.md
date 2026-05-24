@@ -71,6 +71,8 @@ The formula helper supports the following types out of the box:
 | Tier threshold | `tierAtLeast:2` | Actor must be Tier 2 or higher |
 | Level threshold | `levelAtLeast:5` | Actor must be Level 5 or higher |
 | Class check | `classIs:Warrior` | Actor must have a class item named "Warrior" |
+| Community check | `communityIs:Wanderborne` | Actor must have a community item named "Wanderer" |
+| Ancestry check | `ancestryIs:Elf` | Actor must have an ancestry item named "Elf" |
 | Roll expression | `@tier >= 2` | Any Foundry roll formula resolving to truthy |
 
 Requirements can be combined using `AND` and `OR` operators (standard precedence — AND binds tighter):
@@ -101,6 +103,9 @@ Example: `2 + @traits.knowledge.value + @system.levelData.level.current`
 ---
 
 ## Changelog
+
+### 1.2.3
+- **New requirement keywords** — `communityIs:X` and `ancestryIs:X` check whether a character's community or ancestry item name contains the given string (case-insensitive substring, same logic as `classIs:`); both are available in the formula picker in Settings config
 
 ### 1.2.2
 - **Adversary dialog — hide cost UI** — cost labels, ⓘ info badges, and the acquired ✓ checkmark are now hidden for adversary actors; adversaries don't operate under purchase rules so this information was irrelevant
