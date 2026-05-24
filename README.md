@@ -105,6 +105,10 @@ Example: `2 + @traits.knowledge.value + @system.levelData.level.current`
 
 ## Changelog
 
+### 1.3.1
+- **Special Discounts layout fix** — grouped discount rows (languages with multiple qualifying discounts) now stack vertically instead of rendering the options list to the right of the language name; the "Best of:" label is also no longer invalid HTML
+- **Point Pool Rules arrow fix** — the collapse arrow in the Point Pool Rules section of Language Configuration now rotates correctly when the section is expanded
+
 ### 1.3.0
 - **Point Pool Rules** — GMs can define conditional additive modifiers to the PC point pool in Language Configuration. Each rule has a condition (same syntax as language requirements), a modifier formula, and an optional display label. All matching rules stack on top of the base formula (e.g. `communityIs:Highborne` → `+7`)
 - **Point breakdown** — when Point Pool Rules apply, a collapsible *Point breakdown* row appears below the point bar in the language dialog, listing the base value and each matching rule's contribution
