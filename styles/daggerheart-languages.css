@@ -698,13 +698,28 @@
   gap:            0.4em;
 }
 
-.dh-settings-config .point-rules-heading {
-  color:          #c9aa71;
+.dh-settings-config .point-rules-header {
+  display:        flex;
+  align-items:    center;
+  gap:            0.4em;
+  cursor:         pointer;
+  list-style:     none;
   font-size:      0.85em;
+  font-weight:    700;
+  color:          #c9aa71;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  margin:         0 0 0.1em;
-  font-weight:    700;
+  padding:        0.2em 0;
+}
+
+.dh-settings-config .point-rules-header::-webkit-details-marker {
+  display: none;
+}
+
+.dh-settings-config .point-rules-count {
+  font-weight: normal;
+  color:       #888;
+  font-size:   0.9em;
 }
 
 .dh-settings-config .point-rule-row {
@@ -900,6 +915,95 @@
 
 .dh-languages-dialog .pool-breakdown-item.is-negative .pool-breakdown-value {
   color: #c96060;
+}
+
+/* Active discounts collapsible */
+.dh-languages-dialog .active-discounts {
+  font-size:     0.82em;
+  color:         #aaa;
+  margin-bottom: 0.3em;
+}
+
+.dh-languages-dialog .active-discounts-toggle {
+  cursor:      pointer;
+  user-select: none;
+  list-style:  none;
+  padding:     0.1em 0;
+  color:       rgba(201, 170, 113, 0.7);
+}
+
+.dh-languages-dialog .active-discounts-toggle::-webkit-details-marker {
+  display: none;
+}
+
+.dh-languages-dialog .active-discounts-toggle::before {
+  content:   "▶ ";
+  font-size: 0.75em;
+}
+
+.dh-languages-dialog .active-discounts[open] .active-discounts-toggle::before {
+  content: "▼ ";
+}
+
+.dh-languages-dialog .active-discounts-list {
+  list-style:     none;
+  margin:         0.2em 0 0;
+  padding:        0 0 0 0.5em;
+  display:        flex;
+  flex-direction: column;
+  gap:            0.2em;
+}
+
+.dh-languages-dialog .active-discount-item {
+  display:         flex;
+  justify-content: space-between;
+  gap:             0.5em;
+  align-items:     baseline;
+}
+
+.dh-languages-dialog .active-discount-item.is-acquired {
+  opacity: 0.5;
+}
+
+.dh-languages-dialog .discount-lang {
+  font-weight: 500;
+  color:       #ddd;
+}
+
+.dh-languages-dialog .discount-category {
+  font-weight: normal;
+  color:       #888;
+  font-size:   0.9em;
+}
+
+.dh-languages-dialog .discount-info {
+  flex-shrink: 0;
+  color:       #c9aa71;
+  font-style:  italic;
+}
+
+.dh-languages-dialog .active-discount-item.is-acquired .discount-info {
+  color: #888;
+}
+
+.dh-languages-dialog .discount-options {
+  list-style:     none;
+  margin:         0.15em 0 0;
+  padding:        0;
+  display:        flex;
+  flex-direction: column;
+  gap:            0.1em;
+  width:          100%;
+}
+
+.dh-languages-dialog .discount-best-of {
+  font-size:  0.85em;
+  color:      #888;
+  font-style: normal;
+}
+
+.dh-languages-dialog .discount-option {
+  padding-left: 0.6em;
 }
 
 /* ── Search Bar (shared by dialog and settings) ─────────────────────────── */

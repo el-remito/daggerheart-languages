@@ -108,6 +108,9 @@
   "DHLANG.Dialog.poolBreakdownToggle":    "Point breakdown",
   "DHLANG.Dialog.poolBreakdownBase":      "Base",
   "DHLANG.Dialog.poolBreakdownBonus":     "Bonus",
+  "DHLANG.Dialog.activeDiscountsToggle":  "Special Discounts that apply to you…",
+  "DHLANG.Dialog.activeDiscountsCousin":  "Knows {name}",
+  "DHLANG.Dialog.activeDiscountsBestOf":  "Best of:",
 
   "DHLANG.Party.badgeTooltipNone":       "No languages known by the party",
   "DHLANG.Party.badgeTooltipLanguages":  "{name} knows the following languages:<br>{languages}",

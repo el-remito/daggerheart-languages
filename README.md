@@ -9,11 +9,11 @@ A [Foundry VTT](https://foundryvtt.com/) module for the [Daggerheart](https://da
 ## Features
 
 - **GM-configured language catalogue** — define language categories with default costs and optional requirements, then add individual languages with per-language overrides.
-- **Point pool** — each PC has a point pool driven by a configurable formula (supports actor traits, `@system.levelData.level.current`, `@prof`, `@tier`, and keyword requirements such as `hasFeature:X` or `traitAtLeast:presence:2`).
+- **Point pool** — each PC has a point pool driven by a configurable formula (supports actor traits, `@system.levelData.level.current`, `@prof`, `@tier`, and keyword requirements such as `hasFeature:X` or `traitAtLeast:presence:2`). **Point Pool Rules** can add conditional modifiers on top of the base formula — e.g. "Community is Highborne → +7 pts".
 - **Unified discount model** — both cousin discounts and cost-rule discounts compete for the best deal; the single largest discount wins (no stacking). Cousins can also optionally waive the language's requirement entirely.
 - **Formula helper** — a built-in picker in the config UI lets GMs build requirement formulas without writing them by hand.
 - **Badge** — a small icon is injected into every actor sheet header showing acquired languages on hover. It glows amber when the player can afford a new language and red if they have overspent.
-- **Acquisition dialog** — players click the badge to open a dialog listing all available languages grouped by category, with live affordability and requirement checking, a real-time search bar, and per-category acquired/total counters.
+- **Acquisition dialog** — players click the badge to open a dialog listing all available languages grouped by category, with live affordability and requirement checking, a real-time search bar, and per-category acquired/total counters. A collapsible **Special Discounts** panel shows every cost rule and cousin discount currently active for the actor at a glance.
 - **Adversary support** — adversaries can be assigned languages freely (no cost or requirement enforcement).
 - **Party overview** — a language badge is injected into the Party actor sheet header. Hovering lists every language known by the party; clicking opens a read-only overview showing all configured languages alongside which party members speak each one. A **Show only known** toggle filters the list down to languages at least one member speaks. Accessible to all users, not just the GM.
 - **Universal languages** — individual languages can be flagged as *Universal* (e.g. Common) in the settings config. Universal languages sort to the top of the party overview, character badge tooltips, and the acquired languages section in the acquisition dialog.
@@ -46,7 +46,8 @@ Download the [latest release](https://github.com/el-remito/daggerheart-languages
 4. Optionally add **cost rules** to a language — each rule has a requirement and a **Discount Amount**. The first matching rule enters the discount pool.
 5. Optionally add **cousin relationships** to a language — when a player already knows the cousin language, that discount also enters the pool. The single best discount wins (cost rules and cousin discounts do **not** stack). Cousins can also optionally waive the language requirement entirely.
 6. Set the **Point Pool Formula** at the top. Default is `2`; you can use any roll formula referencing actor data (e.g. `@tier * 2`).
-7. Click **Save**.
+7. Optionally expand **Point Pool Rules** to add conditional modifiers — each rule has a condition, a modifier formula (positive or negative), and an optional label shown in the player's point breakdown.
+8. Click **Save**.
 
 ### Players
 
@@ -103,6 +104,12 @@ Example: `2 + @traits.knowledge.value + @system.levelData.level.current`
 ---
 
 ## Changelog
+
+### 1.3.0
+- **Point Pool Rules** — GMs can define conditional additive modifiers to the PC point pool in Language Configuration. Each rule has a condition (same syntax as language requirements), a modifier formula, and an optional display label. All matching rules stack on top of the base formula (e.g. `communityIs:Highborne` → `+7`)
+- **Point breakdown** — when Point Pool Rules apply, a collapsible *Point breakdown* row appears below the point bar in the language dialog, listing the base value and each matching rule's contribution
+- **Special Discounts panel** — collapsible *Special Discounts that apply to you…* section in the PC language dialog aggregates every qualifying cost rule and cousin discount across all languages. Multiple discounts on the same language are grouped under a *Best of:* sub-list so the player can see their options at a glance without opening each language individually
+- **Point Pool Rules — collapsible** — the Point Pool Rules section in Language Configuration is now collapsed by default, consistent with categories and languages; a count badge `(N)` shows how many rules are defined
 
 ### 1.2.3
 - **New requirement keywords** — `communityIs:X` and `ancestryIs:X` check whether a character's community or ancestry item name contains the given string (case-insensitive substring, same logic as `classIs:`); both are available in the formula picker in Settings config

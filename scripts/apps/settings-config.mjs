@@ -37,8 +37,9 @@ export class LanguageSettingsConfig extends foundry.applications.api.HandlebarsA
   #config = null;
 
   // Collapse state — persisted across re-renders so user-opened <details> stay open.
-  #openCategories = new Set();
-  #openLanguages  = new Set();
+  #openCategories       = new Set();
+  #openLanguages        = new Set();
+  #pointRulesSectionOpen = false;
 
   /** Snapshot which <details> elements are currently open before a re-render wipes the DOM. */
   _captureCollapseState() {
@@ -57,6 +58,7 @@ export class LanguageSettingsConfig extends foundry.applications.api.HandlebarsA
         if (id) this.#openLanguages.add(id);
       }
     }
+    this.#pointRulesSectionOpen = this.element.querySelector('.point-rules-section')?.open ?? false;
   }
 
   /** Override render to capture collapse state before the DOM is replaced. */
@@ -127,8 +129,9 @@ export class LanguageSettingsConfig extends foundry.applications.api.HandlebarsA
     }
 
     return {
-      config:       this.#config,
+      config:           this.#config,
       pointFormulaHint: game.i18n.localize('DHLANG.Settings.pointFormulaHint'),
+      pointRulesCount:  (this.#config.pointRules ?? []).length,
     };
   }
 
@@ -482,6 +485,9 @@ export class LanguageSettingsConfig extends foundry.applications.api.HandlebarsA
     for (const d of el.querySelectorAll('.config-language')) {
       const id = d.querySelector('[data-language-id]')?.dataset.languageId;
       if (id && this.#openLanguages.has(id)) d.setAttribute('open', '');
+    }
+    if (this.#pointRulesSectionOpen) {
+      el.querySelector('.point-rules-section')?.setAttribute('open', '');
     }
   }
 

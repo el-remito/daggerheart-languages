@@ -1,5 +1,5 @@
 import { MODULE_ID, FLAGS, SETTINGS, TEMPLATES } from '../constants.mjs';
-import { evaluateRequirement, formatRequirement } from '../utils/formula.mjs';
+import { evaluateRequirement, evaluateFormula, formatRequirement } from '../utils/formula.mjs';
 import {
   getAcquiredLanguageIds,
   findLanguage,
@@ -76,6 +76,50 @@ export class LanguageDialog extends foundry.applications.api.HandlebarsApplicati
           }
       );
       pool.hasRules = pool.breakdown.length > 1;
+    }
+
+    // Build active discounts list (PC only) — grouped per language
+    const activeDiscounts = [];
+    if (isPC) {
+      for (const cat of (config.categories ?? [])) {
+        for (const lang of (cat.languages ?? [])) {
+          const collected = [];
+
+          // Cost rules — first matching rule per language
+          for (const rule of (lang.costRules ?? [])) {
+            try {
+              if (!await evaluateRequirement(rule.requirement, this.actor)) continue;
+              const da = Number(await evaluateFormula(String(rule.discountAmount ?? 0), this.actor));
+              collected.push({ requirementText: formatRequirement(rule.requirement), discountAmount: da });
+              break;
+            } catch (_) { /* skip */ }
+          }
+
+          // Cousins — each qualifying cousin is a separate alternative
+          for (const cousin of (lang.cousins ?? [])) {
+            if (!acquiredIds.includes(cousin.languageId)) continue;
+            try {
+              const da = Number(await evaluateFormula(String(cousin.discountAmount ?? 0), this.actor));
+              if (da <= 0) continue;
+              const cousinLang = findLanguage(cousin.languageId, config);
+              collected.push({
+                requirementText: game.i18n.format('DHLANG.Dialog.activeDiscountsCousin', { name: cousinLang?.language?.name ?? '?' }),
+                discountAmount:  da,
+              });
+            } catch (_) { /* skip */ }
+          }
+
+          if (collected.length > 0) {
+            activeDiscounts.push({
+              languageName:    lang.name,
+              categoryName:    cat.name,
+              alreadyAcquired: acquiredIds.includes(lang.id),
+              discounts:       collected,
+              hasMultiple:     collected.length > 1,
+            });
+          }
+        }
+      }
     }
 
     const categories = [];
@@ -188,14 +232,15 @@ export class LanguageDialog extends foundry.applications.api.HandlebarsApplicati
     });
 
     return {
-      actor:        this.actor,
+      actor:          this.actor,
       isPC,
       isGM,
       pool,
-      pointFormula: config.pointFormula ?? '2',
+      pointFormula:   config.pointFormula ?? '2',
       categories,
       acquiredLanguages,
-      isAdversary:  this.actor.type === 'adversary',
+      activeDiscounts,
+      isAdversary:    this.actor.type === 'adversary',
     };
   }
 

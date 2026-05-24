@@ -8,8 +8,12 @@
   </div>
 
   {{!-- Point Pool Rules --}}
-  <div class="config-section point-rules-section">
-    <h3 class="point-rules-heading">{{localize "DHLANG.Settings.pointRules"}}</h3>
+  <details class="config-section point-rules-section">
+    <summary class="point-rules-header">
+      <span class="dh-collapse-arrow">▶</span>
+      {{localize "DHLANG.Settings.pointRules"}}
+      <span class="point-rules-count">({{pointRulesCount}})</span>
+    </summary>
     <p class="hint">{{localize "DHLANG.Settings.pointRulesHint"}}</p>
     {{#each config.pointRules}}
     <div class="point-rule-row">
@@ -106,7 +110,7 @@
     <button type="button" data-action="addPointRule" class="add-btn">
       + {{localize "DHLANG.Settings.addPointRule"}}
     </button>
-  </div>
+  </details>
 
   {{!-- Search bar --}}
   <div class="config-section dh-lang-search-bar">

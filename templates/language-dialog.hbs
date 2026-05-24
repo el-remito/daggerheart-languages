@@ -60,6 +60,37 @@
   </div>
   {{/if}}
 
+  {{!-- Active discounts (PC only) --}}
+  {{#if activeDiscounts.length}}
+  <details class="active-discounts">
+    <summary class="active-discounts-toggle">
+      <em>{{localize "DHLANG.Dialog.activeDiscountsToggle"}}</em>
+    </summary>
+    <ul class="active-discounts-list">
+      {{#each activeDiscounts}}
+      <li class="active-discount-item {{#if this.alreadyAcquired}}is-acquired{{/if}}">
+        <span class="discount-lang">
+          {{this.languageName}}
+          <span class="discount-category">({{this.categoryName}})</span>
+        </span>
+        {{#if this.hasMultiple}}
+        <ul class="discount-options">
+          <span class="discount-best-of">{{localize "DHLANG.Dialog.activeDiscountsBestOf"}}</span>
+          {{#each this.discounts}}
+          <li class="discount-option">
+            <span class="discount-info">−{{this.discountAmount}} pts · {{this.requirementText}}</span>
+          </li>
+          {{/each}}
+        </ul>
+        {{else}}
+        <span class="discount-info">−{{this.discounts.[0].discountAmount}} pts · {{this.discounts.[0].requirementText}}</span>
+        {{/if}}
+      </li>
+      {{/each}}
+    </ul>
+  </details>
+  {{/if}}
+
   {{!-- Available languages by category --}}
   {{#each categories}}
   <details class="lang-category" data-category-id="{{this.id}}">
