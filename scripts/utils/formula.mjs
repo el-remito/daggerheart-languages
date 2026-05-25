@@ -35,6 +35,10 @@ function _formatAtom(req) {
     const value = req.slice('classIs:'.length).trim();
     return game.i18n.format('DHLANG.Requirement.classIs', { value });
   }
+  if (req.startsWith('subclassIs:')) {
+    const value = req.slice('subclassIs:'.length).trim();
+    return game.i18n.format('DHLANG.Requirement.subclassIs', { value });
+  }
   if (req.startsWith('communityIs:')) {
     const value = req.slice('communityIs:'.length).trim();
     return game.i18n.format('DHLANG.Requirement.communityIs', { value });
@@ -173,6 +177,16 @@ async function _evaluateAtom(req, actor) {
     if (!className) return true;
     try {
       return actor.items.some(i => i.type === 'class' && i.name?.toLowerCase().includes(className));
+    } catch (_) { return true; }
+  }
+
+  // ── Keyword: subclassIs:SubclassName ─────────────────────────────────────
+  if (req.startsWith('subclassIs:')) {
+    if (actor.type !== 'character') return true;
+    const subclassName = req.slice('subclassIs:'.length).trim().toLowerCase();
+    if (!subclassName) return true;
+    try {
+      return actor.items.some(i => i.type === 'subclass' && i.name?.toLowerCase().includes(subclassName));
     } catch (_) { return true; }
   }
 

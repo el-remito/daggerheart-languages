@@ -2,7 +2,7 @@
 
   {{!-- Point pool (PC only) --}}
   {{#if isPC}}
-  <div class="point-bar">
+  <div class="point-bar{{#if pool.sticky}} point-bar--sticky{{/if}}">
     <span class="point-label">
       {{localize "DHLANG.Dialog.points"}}
       <span class="point-formula-info" data-tooltip="{{pointFormula}}">ⓘ</span>
@@ -39,11 +39,14 @@
 
   {{!-- Acquired languages --}}
   {{#if acquiredLanguages.length}}
-  <div class="acquired-section">
-    <div class="acquired-section-header">
-      <h3>{{localize "DHLANG.Dialog.acquired"}}</h3>
+  <details class="acquired-section" open>
+    <summary class="acquired-section-header">
+      <h3 data-tooltip="{{acquiredTooltip}}">
+        {{localize "DHLANG.Dialog.acquired"}}
+        <span class="acquired-badge" data-tooltip="{{acquiredTooltip}}">{{acquiredLanguages.length}}</span>
+      </h3>
       <button type="button" data-action="shareLanguages" data-tooltip="{{localize 'DHLANG.Dialog.shareTooltip'}}">📢</button>
-    </div>
+    </summary>
     {{#each acquiredLanguages}}
     <div class="acquired-row">
       <span class="lang-name">{{this.name}}</span>
@@ -57,7 +60,7 @@
       {{/if}}
     </div>
     {{/each}}
-  </div>
+  </details>
   {{/if}}
 
   {{!-- Active discounts (PC only) --}}
@@ -68,23 +71,12 @@
     </summary>
     <ul class="active-discounts-list">
       {{#each activeDiscounts}}
-      <li class="active-discount-item {{#if this.alreadyAcquired}}is-acquired{{/if}} {{#if this.hasMultiple}}has-multiple{{/if}}">
+      <li class="active-discount-item {{#if this.alreadyAcquired}}is-acquired{{/if}}">
         <span class="discount-lang">
           {{this.languageName}}
           <span class="discount-category">({{this.categoryName}})</span>
         </span>
-        {{#if this.hasMultiple}}
-        <span class="discount-best-of">{{localize "DHLANG.Dialog.activeDiscountsBestOf"}}</span>
-        <ul class="discount-options">
-          {{#each this.discounts}}
-          <li class="discount-option">
-            <span class="discount-info">−{{this.discountAmount}} pts · {{this.requirementText}}</span>
-          </li>
-          {{/each}}
-        </ul>
-        {{else}}
-        <span class="discount-info">−{{this.discounts.[0].discountAmount}} pts · {{this.discounts.[0].requirementText}}</span>
-        {{/if}}
+        <span class="discount-info">−{{this.discount.discountAmount}} pts · {{this.discount.requirementText}}</span>
       </li>
       {{/each}}
     </ul>

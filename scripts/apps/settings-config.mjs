@@ -394,6 +394,7 @@ export class LanguageSettingsConfig extends foundry.applications.api.HandlebarsA
         if (type === 'tierAtLeast')  wrapper.querySelector('.picker-sub--tier-at-least').hidden = false;
         if (type === 'levelAtLeast') wrapper.querySelector('.picker-sub--level-at-least').hidden = false;
         if (type === 'classIs')      wrapper.querySelector('.picker-sub--class').hidden         = false;
+        if (type === 'subclassIs')   wrapper.querySelector('.picker-sub--subclass').hidden      = false;
         if (type === 'communityIs')  wrapper.querySelector('.picker-sub--community').hidden     = false;
         if (type === 'ancestryIs')   wrapper.querySelector('.picker-sub--ancestry').hidden      = false;
         // 'hasSpellcasting' and 'custom' need no sub-fields.
@@ -436,6 +437,10 @@ export class LanguageSettingsConfig extends foundry.applications.api.HandlebarsA
           case 'classIs': {
             const cls = wrapper.querySelector('.picker-class-name')?.value.trim();
             return cls ? `classIs:${cls}` : '';
+          }
+          case 'subclassIs': {
+            const name = wrapper.querySelector('.picker-subclass-name')?.value.trim();
+            return name ? `subclassIs:${name}` : '';
           }
           case 'communityIs': {
             const name = wrapper.querySelector('.picker-community-name')?.value.trim();
@@ -694,6 +699,13 @@ export class LanguageSettingsConfig extends foundry.applications.api.HandlebarsA
         const cls = req.slice('classIs:'.length).trim();
         if (!cls) errors.push(game.i18n.format('DHLANG.Settings.validationError', {
           error: `${label}: classIs requires a class name (e.g. classIs:Warrior)`,
+        }));
+        return;
+      }
+      if (req.startsWith('subclassIs:')) {
+        const val = req.slice('subclassIs:'.length).trim();
+        if (!val) errors.push(game.i18n.format('DHLANG.Settings.validationError', {
+          error: `${label}: subclassIs requires a subclass name (e.g. subclassIs:Stalwart)`,
         }));
         return;
       }

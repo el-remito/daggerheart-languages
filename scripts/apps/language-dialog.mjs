@@ -76,46 +76,37 @@ export class LanguageDialog extends foundry.applications.api.HandlebarsApplicati
           }
       );
       pool.hasRules = pool.breakdown.length > 1;
+      pool.sticky   = pool.remaining > 0;
     }
 
-    // Build active discounts list (PC only) — grouped per language
+    // Build active discounts list (PC only) — best discount per language only,
+    // using the same winner logic as resolveLanguageCost().
     const activeDiscounts = [];
     if (isPC) {
       for (const cat of (config.categories ?? [])) {
         for (const lang of (cat.languages ?? [])) {
-          const collected = [];
+          let discount = null;
+          try {
+            const result = await resolveLanguageCost(lang, cat, this.actor);
+            if (result.effectiveCost < result.originalCost) {
+              const discountAmount = result.originalCost - result.effectiveCost;
+              let requirementText = '';
+              if (result.cousinApplied) {
+                const cousinLang = findLanguage(result.cousinApplied.languageId, config);
+                requirementText = game.i18n.format('DHLANG.Dialog.activeDiscountsCousin', { name: cousinLang?.language?.name ?? '?' });
+              } else if (result.costRuleApplied) {
+                requirementText = formatRequirement(result.costRuleApplied.requirement);
+              }
+              discount = { discountAmount, requirementText };
+            }
+          } catch (_) { /* skip */ }
 
-          // Cost rules — first matching rule per language
-          for (const rule of (lang.costRules ?? [])) {
-            try {
-              if (!await evaluateRequirement(rule.requirement, this.actor)) continue;
-              const da = Number(await evaluateFormula(String(rule.discountAmount ?? 0), this.actor));
-              collected.push({ requirementText: formatRequirement(rule.requirement), discountAmount: da });
-              break;
-            } catch (_) { /* skip */ }
-          }
-
-          // Cousins — each qualifying cousin is a separate alternative
-          for (const cousin of (lang.cousins ?? [])) {
-            if (!acquiredIds.includes(cousin.languageId)) continue;
-            try {
-              const da = Number(await evaluateFormula(String(cousin.discountAmount ?? 0), this.actor));
-              if (da <= 0) continue;
-              const cousinLang = findLanguage(cousin.languageId, config);
-              collected.push({
-                requirementText: game.i18n.format('DHLANG.Dialog.activeDiscountsCousin', { name: cousinLang?.language?.name ?? '?' }),
-                discountAmount:  da,
-              });
-            } catch (_) { /* skip */ }
-          }
-
-          if (collected.length > 0) {
+          if (discount) {
             activeDiscounts.push({
               languageName:    lang.name,
               categoryName:    cat.name,
               alreadyAcquired: acquiredIds.includes(lang.id),
-              discounts:       collected,
-              hasMultiple:     collected.length > 1,
+              discount,
             });
           }
         }
@@ -231,6 +222,15 @@ export class LanguageDialog extends foundry.applications.api.HandlebarsApplicati
       return a.name.localeCompare(b.name);
     });
 
+    const acquiredNames = acquiredLanguages.map(l => l.name).join(', ');
+    const acquiredTooltip = isPC
+      ? (acquiredLanguages.length
+          ? game.i18n.format('DHLANG.Badge.pcSpeaksLanguages', { name: this.actor.name, languages: acquiredNames })
+          : game.i18n.format('DHLANG.Badge.pcNoLanguages', { name: this.actor.name }))
+      : (acquiredLanguages.length
+          ? game.i18n.format('DHLANG.Badge.speaksLanguages', { languages: acquiredNames })
+          : game.i18n.localize('DHLANG.Badge.noLanguages'));
+
     return {
       actor:          this.actor,
       isPC,
@@ -239,6 +239,7 @@ export class LanguageDialog extends foundry.applications.api.HandlebarsApplicati
       pointFormula:   config.pointFormula ?? '2',
       categories,
       acquiredLanguages,
+      acquiredTooltip,
       activeDiscounts,
       isAdversary:    this.actor.type === 'adversary',
     };
@@ -253,9 +254,12 @@ export class LanguageDialog extends foundry.applications.api.HandlebarsApplicati
     for (const btn of this.element.querySelectorAll('[data-action="removeLanguage"]')) {
       btn.addEventListener('click', this._onRemoveLanguage.bind(this));
     }
-    // Share to chat button
+    // Share to chat button — stopPropagation so clicking it doesn't toggle the acquired <details>.
     const shareBtn = this.element.querySelector('[data-action="shareLanguages"]');
-    if (shareBtn) shareBtn.addEventListener('click', this._onShareLanguages.bind(this));
+    if (shareBtn) shareBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      this._onShareLanguages(e);
+    });
 
     // Restore collapse state: any category that was open before the re-render stays open.
     for (const d of this.element.querySelectorAll('.lang-category')) {

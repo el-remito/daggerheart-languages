@@ -72,6 +72,7 @@ The formula helper supports the following types out of the box:
 | Tier threshold | `tierAtLeast:2` | Actor must be Tier 2 or higher |
 | Level threshold | `levelAtLeast:5` | Actor must be Level 5 or higher |
 | Class check | `classIs:Warrior` | Actor must have a class item named "Warrior" |
+| Subclass check | `subclassIs:Stalwart` | Actor must have a subclass item named "Stalwart" |
 | Community check | `communityIs:Wanderborne` | Actor must have a community item named "Wanderer" |
 | Ancestry check | `ancestryIs:Elf` | Actor must have an ancestry item named "Elf" |
 | Roll expression | `@tier >= 2` | Any Foundry roll formula resolving to truthy |
@@ -104,6 +105,13 @@ Example: `2 + @traits.knowledge.value + @system.levelData.level.current`
 ---
 
 ## Changelog
+
+### 1.3.3
+- **Subclass condition** — `subclassIs:SubclassName` keyword added to the requirement/condition system; checks whether the PC has a subclass item whose name contains the given string (case-insensitive substring, same logic as `classIs:`); available in the formula picker in all requirement, Cost Rule, and Point Pool Rule condition fields
+- **Active discounts — best only** — the *Special Discounts that apply to you…* panel now shows only the single best qualifying discount per language (lowest effective cost, same winner logic as the main language list), removing the "Best of:" sub-list
+- **Sticky point-bar** — the point-bar in the language dialog sticks to the top of the scroll area while the PC still has unspent points, keeping remaining points visible while browsing
+- **Collapsible acquired section** — the Acquired Languages section is now collapsible (open by default); a count badge next to the heading shows the number of acquired languages and, on hover, the full list (mirroring the actor-sheet badge tooltip)
+- **Points Breakdown label** — the collapsible point breakdown toggle in the language dialog is now labelled "Points Breakdown"
 
 ### 1.3.2
 - **Template render fix** — corrected a regression introduced in 1.3.1 that caused the language dialog to fail to open with a "must render a single HTML element" error
