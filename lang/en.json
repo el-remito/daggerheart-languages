@@ -122,5 +122,8 @@
   "DHLANG.Party.noMembers":             "No party members assigned",
   "DHLANG.Party.noSpeakers":            "—",
   "DHLANG.Party.showOnlyKnown":         "Show only known",
-  "DHLANG.Party.showAll":               "Show all languages"
+  "DHLANG.Party.showAll":               "Show all languages",
+
+  "DHLANG.Settings.chipShortName":     "Party overview: show first name only",
+  "DHLANG.Settings.chipShortNameHint": "When enabled, speaker chips in the Party Language Overview show only the first word of each actor's name."
 }

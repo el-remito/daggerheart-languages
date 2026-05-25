@@ -24,4 +24,14 @@ export function registerSettings() {
     type:       LanguageSettingsConfig,
     restricted: true,
   });
+
+  game.settings.register(MODULE_ID, SETTINGS.CHIP_SHORT_NAME, {
+    name:       'DHLANG.Settings.chipShortName',
+    hint:       'DHLANG.Settings.chipShortNameHint',
+    scope:      'world',
+    config:     true,
+    type:       Boolean,
+    default:    false,
+    restricted: true,
+  });
 }

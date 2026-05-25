@@ -5,8 +5,9 @@ export const FLAGS = {
 };
 
 export const SETTINGS = {
-  CONFIG: 'languageConfig',
-  MENU:   'languageConfigMenu',
+  CONFIG:          'languageConfig',
+  MENU:            'languageConfigMenu',
+  CHIP_SHORT_NAME: 'chipShortName',
 };
 
 export const ACTOR_TYPES = {

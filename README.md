@@ -106,6 +106,9 @@ Example: `2 + @traits.knowledge.value + @system.levelData.level.current`
 
 ## Changelog
 
+### 1.3.5
+- **Party overview — short name chips** — a new Game Settings toggle (*Party overview: show first name only*) lets GMs display only the first word of each actor's name inside speaker chips in the Party Language Overview, keeping the table tidy for parties with long character names.
+
 ### 1.3.4
 - **Cost Rule — Waive Requirement** — Cost Rules now have a **Waive Requirement** checkbox, matching the existing cousin behaviour. When a rule's trigger condition is met and the checkbox is checked, the language's own acquisition requirement is bypassed entirely for that actor — e.g. a Rogue automatically ignores the scholar-background requirement on Thieves' Cant without needing a cousin relationship.
 

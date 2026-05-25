@@ -43,6 +43,7 @@ export class PartyLanguageOverview extends foundry.applications.api.HandlebarsAp
 
   async _prepareContext(_options) {
     const config = game.settings.get(MODULE_ID, SETTINGS.CONFIG);
+    const chipShortName = game.settings.get(MODULE_ID, SETTINGS.CHIP_SHORT_NAME);
 
     // actor.system.partyMembers is already an array of resolved Actor documents
     // (ForeignDocumentUUIDField auto-resolves at access time — no fromUuidSync needed).
@@ -62,7 +63,7 @@ export class PartyLanguageOverview extends foundry.applications.api.HandlebarsAp
         const originalCost = Number(lang.cost ?? cat.cost ?? 0);
         const speakerNames = memberData
           .filter(m => m.acquiredIds.has(lang.id))
-          .map(m => m.name);
+          .map(m => chipShortName ? m.name.split(/\s+/)[0] : m.name);
 
         flat.push({
           id:          lang.id,
