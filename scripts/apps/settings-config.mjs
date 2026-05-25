@@ -310,6 +310,17 @@ export class LanguageSettingsConfig extends foundry.applications.api.HandlebarsA
       });
     }
 
+    for (const cb of el.querySelectorAll('[data-field="costRuleWaiveRequirement"]')) {
+      cb.addEventListener('change', e => {
+        const rule = this._findCostRule(
+          e.currentTarget.dataset.categoryId,
+          e.currentTarget.dataset.languageId,
+          Number(e.currentTarget.dataset.ruleIndex),
+        );
+        if (rule) rule.waiveRequirement = e.target.checked;
+      });
+    }
+
     el.querySelector('[data-action="addPointRule"]')
       ?.addEventListener('click', () => this._addPointRule());
 
@@ -610,7 +621,7 @@ export class LanguageSettingsConfig extends foundry.applications.api.HandlebarsA
   _addCostRule(categoryId, languageId) {
     const lang = this._findLanguage(categoryId, languageId);
     if (!lang) return;
-    (lang.costRules ??= []).push({ requirement: null, discountAmount: 0 });
+    (lang.costRules ??= []).push({ requirement: null, discountAmount: 0, waiveRequirement: false });
     this.render();
   }
 

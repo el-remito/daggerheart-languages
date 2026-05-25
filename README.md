@@ -10,7 +10,7 @@ A [Foundry VTT](https://foundryvtt.com/) module for the [Daggerheart](https://da
 
 - **GM-configured language catalogue** — define language categories with default costs and optional requirements, then add individual languages with per-language overrides.
 - **Point pool** — each PC has a point pool driven by a configurable formula (supports actor traits, `@system.levelData.level.current`, `@prof`, `@tier`, and keyword requirements such as `hasFeature:X` or `traitAtLeast:presence:2`). **Point Pool Rules** can add conditional modifiers on top of the base formula — e.g. "Community is Highborne → +7 pts".
-- **Unified discount model** — both cousin discounts and cost-rule discounts compete for the best deal; the single largest discount wins (no stacking). Cousins can also optionally waive the language's requirement entirely.
+- **Unified discount model** — both cousin discounts and cost-rule discounts compete for the best deal; the single largest discount wins (no stacking). Both cousins and cost rules can optionally waive the language's requirement entirely.
 - **Formula helper** — a built-in picker in the config UI lets GMs build requirement formulas without writing them by hand.
 - **Badge** — a small icon is injected into every actor sheet header showing acquired languages on hover. It glows amber when the player can afford a new language and red if they have overspent.
 - **Acquisition dialog** — players click the badge to open a dialog listing all available languages grouped by category, with live affordability and requirement checking, a real-time search bar, and per-category acquired/total counters. A collapsible **Special Discounts** panel shows every cost rule and cousin discount currently active for the actor at a glance.
@@ -43,7 +43,7 @@ Download the [latest release](https://github.com/el-remito/daggerheart-languages
 1. Open **Game Settings → Module Settings → Configure Languages**.
 2. Add one or more **categories** (e.g. *Common*, *Ancient*, *Planar*). Each category has a default cost and an optional requirement formula.
 3. Add **languages** inside each category. Leave cost/requirement blank to inherit from the category.
-4. Optionally add **cost rules** to a language — each rule has a requirement and a **Discount Amount**. The first matching rule enters the discount pool.
+4. Optionally add **cost rules** to a language — each rule has a requirement, a **Discount Amount**, and an optional **Waive Requirement** checkbox. The first matching rule enters the discount pool; if *Waive Requirement* is checked, the language's own acquisition requirement is bypassed for any actor who meets the rule.
 5. Optionally add **cousin relationships** to a language — when a player already knows the cousin language, that discount also enters the pool. The single best discount wins (cost rules and cousin discounts do **not** stack). Cousins can also optionally waive the language requirement entirely.
 6. Set the **Point Pool Formula** at the top. Default is `2`; you can use any roll formula referencing actor data (e.g. `@tier * 2`).
 7. Optionally expand **Point Pool Rules** to add conditional modifiers — each rule has a condition, a modifier formula (positive or negative), and an optional label shown in the player's point breakdown.
@@ -105,6 +105,9 @@ Example: `2 + @traits.knowledge.value + @system.levelData.level.current`
 ---
 
 ## Changelog
+
+### 1.3.4
+- **Cost Rule — Waive Requirement** — Cost Rules now have a **Waive Requirement** checkbox, matching the existing cousin behaviour. When a rule's trigger condition is met and the checkbox is checked, the language's own acquisition requirement is bypassed entirely for that actor — e.g. a Rogue automatically ignores the scholar-background requirement on Thieves' Cant without needing a cousin relationship.
 
 ### 1.3.3
 - **Subclass condition** — `subclassIs:SubclassName` keyword added to the requirement/condition system; checks whether the PC has a subclass item whose name contains the given string (case-insensitive substring, same logic as `classIs:`); available in the formula picker in all requirement, Cost Rule, and Point Pool Rule condition fields

@@ -96,7 +96,7 @@ export async function resolveLanguageCost(language, category, actor) {
     effectiveCost:     winner.effectiveCost,
     originalCost:      baseCost,
     cousinApplied:     null,
-    requirementWaived: false,
+    requirementWaived: winner.rule.waiveRequirement ?? false,
     costRuleApplied:   winner.rule,
   };
 }

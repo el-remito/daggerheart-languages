@@ -747,6 +747,15 @@
   font-size:     1em;
 }
 
+.dh-settings-config .cost-rule-waive {
+  display:        flex;
+  flex-direction: row;
+  align-items:    center;
+  gap:            0.3em;
+  font-size:      0.82em;
+  color:          #aaa;
+}
+
 /* Point pool rules section */
 .dh-settings-config .point-rules-section {
   display:        flex;
