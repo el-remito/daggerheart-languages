@@ -102,9 +102,15 @@ export function injectPartyLanguageBadge(app, html, actor) {
 
   badge.addEventListener('click', () => openPartyLanguageOverview(actor));
 
-  // Insert badge as last child of h1.item-name so it sits inline next to the name
-  // input. Combined with the flex CSS on h1.item-name it appears right-adjacent.
-  header.querySelector('h1.item-name').insertAdjacentElement('beforeend', badge);
+  // Insert badge as last child of h1 so it sits inline next to the name.
+  // Try h1.item-name first; fall back to any h1 inside the header in case the
+  // system sheet template changes between versions.
+  const h1 = header.querySelector('h1.item-name') ?? header.querySelector('h1');
+  if (!h1) {
+    console.warn('daggerheart-languages | injectPartyLanguageBadge: h1 target not found inside .party-header-sheet');
+    return;
+  }
+  h1.insertAdjacentElement('beforeend', badge);
 }
 
 /**
@@ -148,7 +154,9 @@ export async function injectLanguageBadge(app, html, actor) {
     badge.addEventListener('click', () => openLanguageDialog(actor));
   }
 
-  nameRow.querySelector('h1.actor-name').insertAdjacentElement('afterend', badge);
+  const h1 = nameRow.querySelector('h1.actor-name') ?? nameRow.querySelector('h1');
+  if (!h1) return;
+  h1.insertAdjacentElement('afterend', badge);
 
   // For PCs: evaluate the point pool and apply a glow class if points are unspent or overspent.
   // The badge is already in the DOM; the class is added async after pool evaluation completes.

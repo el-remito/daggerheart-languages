@@ -106,6 +106,9 @@ Example: `2 + @traits.knowledge.value + @system.levelData.level.current`
 
 ## Changelog
 
+### 1.3.6
+- **Party badge crash fix** — guards the `h1` lookup inside `.party-header-sheet` with a fallback selector (`h1.item-name` → any `h1`) and a safe early-return, preventing a `TypeError` crash when the Daggerheart system sheet template no longer renders `h1.item-name`. Same defensive guard applied to the `h1.actor-name` lookup on character/adversary sheets.
+
 ### 1.3.5
 - **Party overview — short name chips** — a new Game Settings toggle (*Party overview: show first name only*) lets GMs display only the first word of each actor's name inside speaker chips in the Party Language Overview, keeping the table tidy for parties with long character names.
 
