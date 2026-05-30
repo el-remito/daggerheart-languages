@@ -102,15 +102,13 @@ export function injectPartyLanguageBadge(app, html, actor) {
 
   badge.addEventListener('click', () => openPartyLanguageOverview(actor));
 
-  // Insert badge as last child of h1 so it sits inline next to the name.
-  // Try h1.item-name first; fall back to any h1 inside the header in case the
-  // system sheet template changes between versions.
-  const h1 = header.querySelector('h1.item-name') ?? header.querySelector('h1');
-  if (!h1) {
-    console.warn('daggerheart-languages | injectPartyLanguageBadge: h1 target not found inside .party-header-sheet');
-    return;
-  }
-  h1.insertAdjacentElement('beforeend', badge);
+  // Insert badge inline next to the party name. The system template has changed
+  // across versions (previously h1.item-name, now a bare input inside .item-info),
+  // so we cascade through selectors from most to least specific.
+  const target = header.querySelector('.item-info')
+               ?? header.querySelector('.item-container')
+               ?? header;
+  target.insertAdjacentElement('beforeend', badge);
 }
 
 /**

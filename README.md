@@ -106,6 +106,9 @@ Example: `2 + @traits.knowledge.value + @system.levelData.level.current`
 
 ## Changelog
 
+### 1.3.7
+- **Party badge insertion fix** — the Daggerheart system removed the `h1` wrapper around the party name input in its sheet header. Badge injection now targets `.item-info` (the name container) with fallbacks to `.item-container` and the header itself, making it resilient to future template restructuring.
+
 ### 1.3.6
 - **Party badge crash fix** — guards the `h1` lookup inside `.party-header-sheet` with a fallback selector (`h1.item-name` → any `h1`) and a safe early-return, preventing a `TypeError` crash when the Daggerheart system sheet template no longer renders `h1.item-name`. Same defensive guard applied to the `h1.actor-name` lookup on character/adversary sheets.
 
