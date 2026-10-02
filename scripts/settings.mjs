@@ -2,9 +2,9 @@ import { MODULE_ID, SETTINGS } from './constants.mjs';
 import { LanguageSettingsConfig } from './apps/settings-config.mjs';
 
 const DEFAULT_CONFIG = {
-  pointFormula: '2',
-  pointRules:   [],
-  categories:   [],
+  pointComponents: [{ id: 'base', label: null, formula: '2' }],
+  pointRules:      [],
+  categories:      [],
 };
 
 export function registerSettings() {

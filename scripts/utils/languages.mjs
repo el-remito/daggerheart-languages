@@ -115,29 +115,102 @@ export function resolveEffectiveRequirement(language, category, requirementWaive
 }
 
 /**
+ * Returns the labelled formulas that make up the base point pool, in display order.
+ * Configs saved before v1.4.0 only have a single `pointFormula` string; it is read
+ * as one unlabelled component so old worlds keep working until the GM next saves.
+ *
+ * @param {object} config
+ * @returns {{ id: string, label: string|null, formula: string }[]}
+ */
+export function getPointComponents(config) {
+  if (Array.isArray(config.pointComponents) && config.pointComponents.length > 0) {
+    return config.pointComponents;
+  }
+  return [{ id: 'base', label: null, formula: String(config.pointFormula ?? '2') }];
+}
+
+/**
+ * Thrown by calculatePointPool when a point component cannot be evaluated for an actor.
+ * Carries the failing component so callers can name it.
+ */
+export class PointComponentError extends Error {
+  constructor(component, cause) {
+    super(cause?.message ?? String(cause));
+    this.name      = 'PointComponentError';
+    this.component = component;
+  }
+}
+
+/**
+ * Describes a calculatePointPool failure for display. Players get a generic message;
+ * GMs get the failing component's label, formula and error.
+ *
+ * @param {Error} error
+ * @param {boolean} detailed
+ * @returns {string}
+ */
+export function describePointPoolError(error, detailed) {
+  if (!detailed) return game.i18n.localize('DHLANG.Pool.errorGeneric');
+  if (error instanceof PointComponentError) {
+    return game.i18n.format('DHLANG.Pool.errorComponent', {
+      label:   error.component.label || game.i18n.localize('DHLANG.Dialog.poolBreakdownBase'),
+      formula: error.component.formula,
+      error:   error.message,
+    });
+  }
+  return game.i18n.format('DHLANG.Pool.errorOther', { error: error?.message ?? String(error) });
+}
+
+/**
  * Calculates the point pool totals for an actor.
- * Spent points are the sum of current base costs (not discounted costs) of all acquired languages.
+ * Spent points are the sum of current effective costs of all acquired languages.
+ *
+ * Every point component must evaluate — a failing component throws PointComponentError,
+ * because skipping it would produce a plausible but wrong total. A failing point rule
+ * is skipped silently (the bonus simply doesn't apply).
+ *
+ * Breakdown entries: { kind: 'component'|'rule', label, value, resolvedFormula? }
+ * — resolvedFormula (components only) is the formula with @-references substituted.
  *
  * @param {Actor} actor
  * @param {object} config
- * @returns {Promise<{ total: number, base: number, rulesTotal: number, breakdown: object[], spent: number, remaining: number }>}
+ * @returns {Promise<{ total: number, componentsTotal: number, rulesTotal: number, breakdown: object[], spent: number, remaining: number }>}
  */
 export async function calculatePointPool(actor, config) {
-  const base = await evaluateFormula(config.pointFormula ?? '2', actor);
-  const breakdown = [{ label: null, value: base, isBase: true }];
-  let rulesTotal = 0;
+  const rollData = actor.getRollData();
+  const breakdown = [];
+  let componentsTotal = 0;
 
+  for (const component of getPointComponents(config)) {
+    const formula = String(component.formula ?? '').trim();
+    let value;
+    try {
+      if (!formula) throw new Error('Formula is empty.');
+      value = await evaluateFormula(formula, actor);
+    } catch (e) {
+      throw new PointComponentError(component, e);
+    }
+    componentsTotal += value;
+    breakdown.push({
+      kind:            'component',
+      label:           component.label || null,
+      value,
+      resolvedFormula: Roll.replaceFormulaData(formula, rollData),
+    });
+  }
+
+  let rulesTotal = 0;
   for (const rule of (config.pointRules ?? [])) {
     try {
       const passes = await evaluateRequirement(rule.condition, actor);
       if (!passes) continue;
       const mod = await evaluateFormula(String(rule.modifier ?? '0'), actor);
       rulesTotal += mod;
-      breakdown.push({ label: rule.label || null, value: mod, isBase: false });
+      breakdown.push({ kind: 'rule', label: rule.label || null, value: mod });
     } catch (_) { /* skip malformed rules silently */ }
   }
 
-  const total = base + rulesTotal;
+  const total = componentsTotal + rulesTotal;
   const acquiredIds = getAcquiredLanguageIds(actor);
 
   let spent = 0;
@@ -148,5 +221,5 @@ export async function calculatePointPool(actor, config) {
     spent += effectiveCost;
   }
 
-  return { total, base, rulesTotal, breakdown, spent, remaining: total - spent };
+  return { total, componentsTotal, rulesTotal, breakdown, spent, remaining: total - spent };
 }

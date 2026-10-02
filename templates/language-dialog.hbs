@@ -2,17 +2,21 @@
 
   {{!-- Point pool (PC only) --}}
   {{#if isPC}}
+  {{#if pool}}
   <div class="point-bar{{#if pool.sticky}} point-bar--sticky{{/if}}">
     <span class="point-label">
       {{localize "DHLANG.Dialog.points"}}
-      <span class="point-formula-info" data-tooltip="{{pointFormula}}">ⓘ</span>
+      <span class="point-formula-info" data-tooltip-html="{{pool.formulaTooltip}}">ⓘ</span>
     </span>
     <div class="point-track">
       <div class="point-fill {{#if pool.overspent}}overspent{{/if}}" style="width: {{pool.percent}}%"></div>
     </div>
     <span class="point-values">{{pool.spent}} / {{pool.total}}</span>
   </div>
-  {{#if pool.hasRules}}
+  {{else}}
+  <p class="point-bar-error">⚠ {{poolError}}</p>
+  {{/if}}
+  {{#if pool.hasBreakdown}}
   <details class="pool-breakdown">
     <summary class="pool-breakdown-toggle">{{localize "DHLANG.Dialog.poolBreakdownToggle"}}</summary>
     <ul class="pool-breakdown-list">

@@ -45,6 +45,13 @@
   animation: dh-badge-pulse-overspent 2.5s ease-in-out infinite;
 }
 
+/* Point pool could not be calculated — steady purple outline, no pulse,
+   so it can't be mistaken for the amber/red pulsing states. */
+.dh-lang-badge--error {
+  color:      #c3a2ee;
+  box-shadow: 0 0 0 1.5px rgba(160, 110, 225, 0.95), 0 0 5px 1px rgba(160, 110, 225, 0.45);
+}
+
 /* ── Language Dialog ────────────────────────────────────────────────────── */
 
 /* Fixed height enables internal scroll (mirrors settings config pattern) */
@@ -788,12 +795,70 @@
 }
 
 .dh-settings-config .point-rule-row {
+  position:     relative;
+  display:      flex;
+  align-items:  flex-start;
+  flex-wrap:    wrap;
+  gap:          0.5em;
+  padding:      0.4em 0 0.4em 1.6em;
+  border-top:   1px solid rgba(255, 255, 255, 0.05);
+}
+
+/* The rule row wraps, so its handle sits in the left gutter instead of the flex flow */
+.dh-settings-config .point-rule-row > .drag-handle {
+  position: absolute;
+  left:     0;
+  top:      0.5em;
+}
+
+/* Point components */
+.dh-settings-config .point-components-list {
+  display:        flex;
+  flex-direction: column;
+  gap:            0.3em;
+}
+
+.dh-settings-config .point-component-row {
   display:     flex;
-  align-items: flex-start;
-  flex-wrap:   wrap;
-  gap:         0.5em;
-  padding:     0.4em 0;
-  border-top:  1px solid rgba(255, 255, 255, 0.05);
+  align-items: center;
+  gap:         0.4em;
+}
+
+.dh-settings-config .formula-section .point-component-label {
+  flex:  0 1 11em;
+  width: auto;
+}
+
+.dh-settings-config .formula-section .point-component-formula {
+  flex:  1 1 auto;
+  width: auto;
+}
+
+/* Drag-to-reorder (point components + point pool rules) */
+.dh-settings-config .drag-handle {
+  flex-shrink:    0;
+  padding:        0 0.2em;
+  color:          #777;
+  cursor:         grab;
+  user-select:    none;
+  letter-spacing: -0.15em;
+  line-height:    1.6;
+}
+
+.dh-settings-config .drag-handle:hover {
+  color: #c9aa71;
+}
+
+.dh-settings-config .drag-handle:active {
+  cursor: grabbing;
+}
+
+/* The dragged row doubles as the insertion marker at its prospective position */
+.dh-settings-config .is-dragging {
+  opacity:       0.55;
+  background:    rgba(201, 170, 113, 0.08);
+  box-shadow:    inset 0 2px 0 0 #c9aa71;
+  border-radius: 3px;
 }
 
 .dh-settings-config .point-rule-row .requirement-group {
@@ -928,6 +993,17 @@
 
 .dh-languages-dialog .point-formula-info:hover {
   color: #c9aa71;
+}
+
+/* Shown in place of the point bar when the point pool could not be calculated */
+.dh-languages-dialog .point-bar-error {
+  margin:        0;
+  padding:       0.4em 0.6em;
+  border:        1px solid rgba(160, 110, 225, 0.6);
+  border-radius: 4px;
+  background:    rgba(160, 110, 225, 0.1);
+  color:         #c3a2ee;
+  font-size:     0.85em;
 }
 
 /* Pool breakdown collapsible */

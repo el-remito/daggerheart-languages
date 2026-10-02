@@ -9,10 +9,10 @@ A [Foundry VTT](https://foundryvtt.com/) module for the [Daggerheart](https://da
 ## Features
 
 - **GM-configured language catalogue** — define language categories with default costs and optional requirements, then add individual languages with per-language overrides.
-- **Point pool** — each PC has a point pool driven by a configurable formula (supports actor traits, `@system.levelData.level.current`, `@prof`, `@tier`, and keyword requirements such as `hasFeature:X` or `traitAtLeast:presence:2`). **Point Pool Rules** can add conditional modifiers on top of the base formula — e.g. "Community is Highborne → +7 pts".
+- **Point pool** — each PC has a point pool built from labelled **point components** (e.g. *Base* `20`, *Knowledge* `7*@traits.knowledge.value`, *Level* `@system.levelData.level.current`), each a formula over actor traits, `@system.levelData.level.current`, `@prof` or `@tier`. **Point Pool Rules** can add conditional modifiers on top — e.g. "Community is Highborne → +7 pts" — using keyword conditions such as `hasFeature:X` or `traitAtLeast:presence:2`. Players see each component and rule as its own line in the Points Breakdown.
 - **Unified discount model** — both cousin discounts and cost-rule discounts compete for the best deal; the single largest discount wins (no stacking). Both cousins and cost rules can optionally waive the language's requirement entirely.
 - **Formula helper** — a built-in picker in the config UI lets GMs build requirement formulas without writing them by hand.
-- **Badge** — a small icon is injected into every actor sheet header showing acquired languages on hover. It glows amber when the player can afford a new language and red if they have overspent.
+- **Badge** — a small icon is injected into every actor sheet header showing acquired languages on hover. It glows amber when the player can afford a new language and red if they have overspent, and shows a steady purple outline if the point pool can't be calculated.
 - **Acquisition dialog** — players click the badge to open a dialog listing all available languages grouped by category, with live affordability and requirement checking, a real-time search bar, and per-category acquired/total counters. A collapsible **Special Discounts** panel shows every cost rule and cousin discount currently active for the actor at a glance.
 - **Adversary support** — adversaries can be assigned languages freely (no cost or requirement enforcement).
 - **Party overview** — a language badge is injected into the Party actor sheet header. Hovering lists every language known by the party; clicking opens a read-only overview showing all configured languages alongside which party members speak each one. A **Show only known** toggle filters the list down to languages at least one member speaks. Accessible to all users, not just the GM.
@@ -45,8 +45,8 @@ Download the [latest release](https://github.com/el-remito/daggerheart-languages
 3. Add **languages** inside each category. Leave cost/requirement blank to inherit from the category.
 4. Optionally add **cost rules** to a language — each rule has a requirement, a **Discount Amount**, and an optional **Waive Requirement** checkbox. The first matching rule enters the discount pool; if *Waive Requirement* is checked, the language's own acquisition requirement is bypassed for any actor who meets the rule.
 5. Optionally add **cousin relationships** to a language — when a player already knows the cousin language, that discount also enters the pool. The single best discount wins (cost rules and cousin discounts do **not** stack). Cousins can also optionally waive the language requirement entirely.
-6. Set the **Point Pool Formula** at the top. Default is `2`; you can use any roll formula referencing actor data (e.g. `@tier * 2`).
-7. Optionally expand **Point Pool Rules** to add conditional modifiers — each rule has a condition, a modifier formula (positive or negative), and an optional label shown in the player's point breakdown.
+6. Set up the **Point Pool Components** at the top. Each component has a label and a roll formula referencing actor data (e.g. *Knowledge* → `7*@traits.knowledge.value`); the pool is their sum. Default is a single component `2`. Drag the ⋮⋮ handle to reorder components — the order is the order players see in their breakdown.
+7. Optionally expand **Point Pool Rules** to add conditional modifiers — each rule has a condition, a modifier formula (positive or negative), and an optional label shown in the player's point breakdown. Rules can be reordered by dragging too.
 8. Click **Save**.
 
 ### Players
@@ -86,7 +86,7 @@ tierAtLeast:2 AND hasFeature:Wildtouch
 
 The formula picker's **Set / AND / OR** buttons let GMs build compound expressions interactively.
 
-### Point pool formula — available roll data tokens
+### Point pool components — available roll data tokens
 
 | Token | Meaning |
 |---|---|
@@ -100,11 +100,18 @@ The formula picker's **Set / AND / OR** buttons let GMs build compound expressio
 | `@prof` | Proficiency value |
 | `@system.levelData.level.current` | Character level |
 
-Example: `2 + @traits.knowledge.value + @system.levelData.level.current`
+Example components: *Base* `20`, *Knowledge* `7*@traits.knowledge.value`, *Level* `@system.levelData.level.current`. For a level-2 character with Knowledge 2, the Points Breakdown reads `Base 20 · Knowledge +14 · Level +2`, and the ⓘ next to *Points* shows `Base: 20`, `Knowledge: 7*2 = 14`, `Level: 2`.
 
 ---
 
 ## Changelog
+
+### 1.4.0
+- **Point pool components** — the single Point Pool Formula is replaced by a list of labelled components (e.g. *Base* `20`, *Knowledge* `7*@traits.knowledge.value`, *Level* `@system.levelData.level.current`). The pool is their sum, and each component shows as its own line in the Points Breakdown: `Base 20 · Knowledge +14 · Level +2`. Existing worlds keep working unchanged — the old formula is read as a single *Base* component, and is converted the next time the GM saves Language Configuration
+- **Formula tooltip** — the ⓘ next to *Points* lists each component with its actor values substituted, e.g. `Knowledge: 7*2 = 14`
+- **Drag to reorder** — point components and Point Pool Rules can be reordered by dragging their ⋮⋮ handle; the order is the order players see in the breakdown
+- **Broken pool warning** — if a point component can't be calculated for an actor, the language dialog now still opens, with a warning in place of the point bar and acquisition disabled (previously the dialog failed to open), and the badge shows a steady purple outline. Players see a generic message; GMs see which component failed and why
+- Validation: every component must evaluate to an integer and have a formula; together they must add up to a positive integer (an individual component may be zero or negative)
 
 ### 1.3.7
 - **Party badge insertion fix** — the Daggerheart system removed the `h1` wrapper around the party name input in its sheet header. Badge injection now targets `.item-info` (the name container) with fallbacks to `.item-container` and the header itself, making it resilient to future template restructuring.

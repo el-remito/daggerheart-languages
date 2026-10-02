@@ -1,5 +1,7 @@
 import { MODULE_ID, SETTINGS, TEMPLATES } from '../constants.mjs';
 import { evaluateFormula } from '../utils/formula.mjs';
+import { getPointComponents } from '../utils/languages.mjs';
+import { enableDragReorder } from './drag-reorder.mjs';
 
 const MOCK_ACTOR = {
   getRollData: () => ({
@@ -71,6 +73,13 @@ export class LanguageSettingsConfig extends foundry.applications.api.HandlebarsA
     if (!this.#config) {
       const saved = game.settings.get(MODULE_ID, SETTINGS.CONFIG);
       this.#config = foundry.utils.deepClone(saved);
+      // Pre-1.4.0 configs carry a single pointFormula — convert it to components here,
+      // so the next Save writes pointComponents and drops the old key.
+      if (!Array.isArray(this.#config.pointComponents) || this.#config.pointComponents.length === 0) {
+        this.#config.pointComponents = getPointComponents(this.#config)
+          .map(c => ({ ...c, id: foundry.utils.randomID() }));
+      }
+      delete this.#config.pointFormula;
     }
 
     // Sort categories and their languages alphabetically for display.
@@ -129,18 +138,49 @@ export class LanguageSettingsConfig extends foundry.applications.api.HandlebarsA
     }
 
     return {
-      config:           this.#config,
-      pointFormulaHint: game.i18n.localize('DHLANG.Settings.pointFormulaHint'),
-      pointRulesCount:  (this.#config.pointRules ?? []).length,
+      config:             this.#config,
+      pointFormulaHint:   game.i18n.localize('DHLANG.Settings.pointFormulaHint'),
+      pointRulesCount:    (this.#config.pointRules ?? []).length,
+      // The last remaining component cannot be removed.
+      canRemoveComponent: this.#config.pointComponents.length > 1,
     };
   }
 
   _onRender(_context, _options) {
     const el = this.element;
 
-    // Point formula input — live sync to working copy.
-    el.querySelector('#point-formula')?.addEventListener('input', e => {
-      this.#config.pointFormula = e.target.value;
+    // Point components — live sync to working copy.
+    el.querySelector('[data-action="addComponent"]')
+      ?.addEventListener('click', () => this._addComponent());
+
+    for (const btn of el.querySelectorAll('[data-action="removeComponent"]')) {
+      btn.addEventListener('click', e => this._removeComponent(e.currentTarget.dataset.componentId));
+    }
+
+    for (const input of el.querySelectorAll('[data-field="componentLabel"]')) {
+      input.addEventListener('input', e => {
+        const component = this._findComponent(e.currentTarget.dataset.componentId);
+        if (component) component.label = e.target.value || null;
+      });
+    }
+
+    for (const input of el.querySelectorAll('[data-field="componentFormula"]')) {
+      input.addEventListener('input', e => {
+        const component = this._findComponent(e.currentTarget.dataset.componentId);
+        if (component) component.formula = e.target.value;
+      });
+    }
+
+    // Drag-to-reorder for point components and point pool rules (shared helper).
+    enableDragReorder(el.querySelector('.point-components-list'), {
+      rowSelector:    '.point-component-row',
+      handleSelector: '.drag-handle',
+      onReorder:      ids => this._reorder('pointComponents', ids),
+    });
+    enableDragReorder(el.querySelector('.point-rules-section'), {
+      rowSelector:    '.point-rule-row',
+      handleSelector: '.drag-handle',
+      onReorder:      ids => this._reorder('pointRules', ids),
     });
 
     el.querySelector('[data-action="addCategory"]')
@@ -525,6 +565,43 @@ export class LanguageSettingsConfig extends foundry.applications.api.HandlebarsA
     return this._findLanguage(categoryId, languageId)?.costRules?.[index] ?? null;
   }
 
+  _findComponent(componentId) {
+    return this.#config.pointComponents.find(c => c.id === componentId) ?? null;
+  }
+
+  _addComponent() {
+    this.#config.pointComponents.push({
+      id:      foundry.utils.randomID(),
+      label:   null,
+      formula: '',
+    });
+    this.render();
+  }
+
+  async _removeComponent(componentId) {
+    if (this.#config.pointComponents.length <= 1) return;
+    const confirmed = await foundry.applications.api.DialogV2.confirm({
+      window:  { title: game.i18n.localize('DHLANG.Settings.confirmDeleteTitle') },
+      content: `<p>${game.i18n.localize('DHLANG.Settings.confirmDeleteComponent')}</p>`,
+    });
+    if (!confirmed) return;
+    this.#config.pointComponents = this.#config.pointComponents.filter(c => c.id !== componentId);
+    this.render();
+  }
+
+  /**
+   * Reorders one of the id-keyed config arrays to match a drag-and-drop result.
+   * Entries whose id is missing from `ids` keep their relative order at the end.
+   * @param {'pointComponents'|'pointRules'} key
+   * @param {string[]} ids
+   */
+  _reorder(key, ids) {
+    const list = this.#config[key] ?? [];
+    const rank = id => { const i = ids.indexOf(id); return i === -1 ? Infinity : i; };
+    this.#config[key] = [...list].sort((a, b) => rank(a.id) - rank(b.id));
+    this.render();
+  }
+
   _findPointRule(ruleId) {
     return (this.#config.pointRules ?? []).find(r => r.id === ruleId) ?? null;
   }
@@ -745,10 +822,27 @@ export class LanguageSettingsConfig extends foundry.applications.api.HandlebarsA
       for (const atom of atoms) await checkAtom(atom, label);
     };
 
-    // ── Validate point formula ────────────────────────────────────────────
-    const pointTotal = await check(this.#config.pointFormula, 'Point Formula');
-    if (pointTotal !== null && pointTotal <= 0) {
-      errors.push(game.i18n.format('DHLANG.Settings.validationError', { error: 'Point Formula must resolve to a positive integer' }));
+    // ── Validate point components ─────────────────────────────────────────
+    // Each must evaluate to an integer; only their sum must be positive.
+    let componentsTotal = 0;
+    let componentsValid = true;
+    for (const [i, component] of this.#config.pointComponents.entries()) {
+      const componentLabel = component.label || `Point Component #${i + 1}`;
+      if (!String(component.formula ?? '').trim()) {
+        errors.push(game.i18n.format('DHLANG.Settings.validationError', {
+          error: game.i18n.format('DHLANG.Settings.componentFormulaEmpty', { label: componentLabel }),
+        }));
+        componentsValid = false;
+        continue;
+      }
+      const value = await check(component.formula, `${componentLabel} formula`);
+      if (value === null) componentsValid = false;
+      else componentsTotal += value;
+    }
+    if (componentsValid && componentsTotal <= 0) {
+      errors.push(game.i18n.format('DHLANG.Settings.validationError', {
+        error: game.i18n.localize('DHLANG.Settings.componentsNotPositive'),
+      }));
     }
 
     // ── Validate point pool rules ─────────────────────────────────────────

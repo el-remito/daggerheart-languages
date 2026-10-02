@@ -6,6 +6,7 @@ import {
   resolveLanguageCost,
   resolveEffectiveRequirement,
   calculatePointPool,
+  describePointPoolError,
 } from '../utils/languages.mjs';
 
 export class LanguageDialog extends foundry.applications.api.HandlebarsApplicationMixin(
@@ -62,21 +63,46 @@ export class LanguageDialog extends foundry.applications.api.HandlebarsApplicati
     const isPC = this.actor.type === 'character';
     const isGM = game.user.isGM;
 
-    const pool = isPC ? await calculatePointPool(this.actor, config) : null;
+    // A failing point component fails the whole pool — the dialog still opens, with a
+    // warning in place of the point bar and acquisition disabled (PC only).
+    let pool = null;
+    let poolError = null;
+    if (isPC) {
+      try {
+        pool = await calculatePointPool(this.actor, config);
+      } catch (e) {
+        poolError = describePointPoolError(e, isGM);
+        if (isGM) console.warn(`daggerheart-languages | Point pool for "${this.actor.name}" failed:`, e);
+      }
+    }
     if (pool) {
+      const baseLabel  = game.i18n.localize('DHLANG.Dialog.poolBreakdownBase');
+      const bonusLabel = game.i18n.localize('DHLANG.Dialog.poolBreakdownBonus');
+      const labelOf = entry => entry.label ?? (entry.kind === 'component' ? baseLabel : bonusLabel);
+
       pool.percent   = pool.total > 0 ? Math.min(100, Math.round((pool.spent / pool.total) * 100)) : 0;
       pool.overspent = pool.spent > pool.total;
-      pool.breakdownLines = pool.breakdown.map(entry => entry.isBase
-        ? { label: game.i18n.localize('DHLANG.Dialog.poolBreakdownBase'), value: entry.value, sign: '' }
-        : {
-            label:    entry.label ?? game.i18n.localize('DHLANG.Dialog.poolBreakdownBonus'),
-            value:    Math.abs(entry.value),
-            sign:     entry.value >= 0 ? '+' : '−',
-            negative: entry.value < 0,
-          }
-      );
-      pool.hasRules = pool.breakdown.length > 1;
-      pool.sticky   = pool.remaining > 0;
+      // First line is unsigned (it starts the sum); every later line carries +/−.
+      pool.breakdownLines = pool.breakdown.map((entry, i) => ({
+        label:    labelOf(entry),
+        value:    Math.abs(entry.value),
+        sign:     entry.value < 0 ? '−' : (i === 0 ? '' : '+'),
+        negative: entry.value < 0,
+      }));
+      pool.hasBreakdown = pool.breakdownLines.length > 1;
+      pool.sticky       = pool.remaining > 0;
+
+      // ⓘ tooltip: one "Label: substituted formula = value" line per component.
+      // The "= value" part is dropped when substitution already yields just the number.
+      const { escapeHTML } = foundry.utils;
+      pool.formulaTooltip = pool.breakdown
+        .filter(entry => entry.kind === 'component')
+        .map(entry => {
+          const resolved = entry.resolvedFormula.trim();
+          const shown = resolved === String(entry.value) ? resolved : `${resolved} = ${entry.value}`;
+          return `${escapeHTML(labelOf(entry))}: ${escapeHTML(shown)}`;
+        })
+        .join('<br>');
     }
 
     // Build active discounts list (PC only) — best discount per language only,
@@ -165,7 +191,7 @@ export class LanguageDialog extends foundry.applications.api.HandlebarsApplicati
 
         const infoTooltip = infoParts.length > 0 ? infoParts.join('<br>') : null;
 
-        const canAfford = isPC ? (pool.remaining >= effectiveCost) : true;
+        const canAfford = isPC ? (pool !== null && pool.remaining >= effectiveCost) : true;
         // Adversaries: cost and requirements are display-only, never enforced.
         const canAcquire = !alreadyAcquired && (isPC ? (canAfford && requirementMet) : true);
 
@@ -175,6 +201,8 @@ export class LanguageDialog extends foundry.applications.api.HandlebarsApplicati
           requirementTooltip = game.i18n.format('DHLANG.Dialog.requirementUnmet', {
             requirement: formatRequirement(requirementFormula),
           });
+        } else if (isPC && !pool && !alreadyAcquired) {
+          requirementTooltip = game.i18n.localize('DHLANG.Dialog.poolUnavailable');
         } else if (isPC && !canAfford && !alreadyAcquired) {
           requirementTooltip = game.i18n.format('DHLANG.Dialog.cannotAfford', {
             cost:      effectiveCost,
@@ -236,7 +264,7 @@ export class LanguageDialog extends foundry.applications.api.HandlebarsApplicati
       isPC,
       isGM,
       pool,
-      pointFormula:   config.pointFormula ?? '2',
+      poolError,
       categories,
       acquiredLanguages,
       acquiredTooltip,

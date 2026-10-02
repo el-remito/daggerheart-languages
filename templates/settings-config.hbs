@@ -1,9 +1,31 @@
 <div class="dh-settings-config">
 
-  {{!-- Point pool formula --}}
+  {{!-- Point pool components --}}
   <div class="config-section formula-section">
-    <label for="point-formula">{{localize "DHLANG.Settings.pointFormula"}}</label>
-    <input id="point-formula" type="text" value="{{config.pointFormula}}" placeholder="2" />
+    <label>{{localize "DHLANG.Settings.pointComponents"}}</label>
+    <div class="point-components-list">
+      {{#each config.pointComponents}}
+      <div class="point-component-row" data-row-id="{{this.id}}">
+        <span class="drag-handle" draggable="true"
+              data-tooltip="{{localize 'DHLANG.Settings.dragToReorder'}}">⋮⋮</span>
+        <input type="text" class="point-component-label" value="{{this.label}}"
+               data-field="componentLabel" data-component-id="{{this.id}}"
+               aria-label="{{localize 'DHLANG.Settings.componentLabel'}}"
+               placeholder="{{localize 'DHLANG.Settings.componentLabelPlaceholder'}}" />
+        <input type="text" class="point-component-formula" value="{{this.formula}}"
+               data-field="componentFormula" data-component-id="{{this.id}}"
+               aria-label="{{localize 'DHLANG.Settings.componentFormula'}}"
+               placeholder="e.g. 7*@traits.knowledge.value" />
+        {{#if ../canRemoveComponent}}
+        <button type="button" data-action="removeComponent" data-component-id="{{this.id}}"
+                class="remove-btn danger">✕</button>
+        {{/if}}
+      </div>
+      {{/each}}
+    </div>
+    <button type="button" data-action="addComponent" class="add-btn">
+      + {{localize "DHLANG.Settings.addComponent"}}
+    </button>
     <p class="hint">{{pointFormulaHint}}</p>
   </div>
 
@@ -16,7 +38,9 @@
     </summary>
     <p class="hint">{{localize "DHLANG.Settings.pointRulesHint"}}</p>
     {{#each config.pointRules}}
-    <div class="point-rule-row">
+    <div class="point-rule-row" data-row-id="{{this.id}}">
+      <span class="drag-handle" draggable="true"
+            data-tooltip="{{localize 'DHLANG.Settings.dragToReorder'}}">⋮⋮</span>
       <div class="requirement-group">
         <span class="rg-label">{{localize "DHLANG.Settings.pointRuleCondition"}}</span>
         <div class="rg-row">

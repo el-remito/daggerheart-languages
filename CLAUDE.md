@@ -33,10 +33,12 @@ daggerheart-languages/
 │   │   ├── formula.mjs                  # evaluateFormula(), evaluateRequirement()
 │   │   └── languages.mjs               # getAcquiredLanguageIds(), findLanguage(),
 │   │                                   #   resolveLanguageCost(), resolveEffectiveRequirement(),
-│   │                                   #   calculatePointPool()
+│   │                                   #   getPointComponents(), calculatePointPool(),
+│   │                                   #   PointComponentError, describePointPoolError()
 │   ├── apps/
 │   │   ├── language-dialog.mjs          # LanguageDialog — player-facing acquisition UI
-│   │   └── settings-config.mjs         # LanguageSettingsConfig — GM world config UI
+│   │   ├── settings-config.mjs         # LanguageSettingsConfig — GM world config UI
+│   │   └── drag-reorder.mjs            # enableDragReorder() — shared drag-to-reorder for config lists
 │   └── badge/
 │       └── badge.mjs                   # injectLanguageBadge() — DOM injection
 ├── templates/
@@ -73,7 +75,16 @@ TEMPLATES  = {
 
 ```js
 {
-  pointFormula: "2",          // string — Roll formula evaluated per actor
+  pointComponents: [          // summed to give the base point pool; array order = display order
+    {
+      id:      string,          // foundry.utils.randomID() ('base' for the built-in default)
+      label:   string|null,     // shown in Points Breakdown; null → "Base"
+      formula: string,          // Roll formula evaluated per actor; must not be empty
+    }
+  ],
+  pointRules: [                 // conditional modifiers added on top; array order = display order
+    { id: string, condition: string, modifier: string, label: string|null }
+  ],
   categories: [
     {
       id:          string,    // foundry.utils.randomID()
@@ -101,6 +112,8 @@ TEMPLATES  = {
   ]
 }
 ```
+
+> **Note (v1.4.0):** configs saved before 1.4.0 have `pointFormula: string` instead of `pointComponents`. There is no migration hook — `getPointComponents(config)` reads an old `pointFormula` as one unlabelled component, and `LanguageSettingsConfig` converts it to `pointComponents` (dropping `pointFormula`) when the GM next saves. Always read components through `getPointComponents`, never `config.pointComponents` directly.
 
 > **Note:** `description` on both categories and languages was not in the original CLAUDE.md spec — it was added during Step 10b. All existing data without it treats it as `null`.
 
@@ -161,7 +174,10 @@ All cost/requirement values in the config come from `<input type="text">` elemen
 5. Return `{ effectiveCost, originalCost, cousinApplied, requirementWaived }`
 
 ### Point Pool (`calculatePointPool`)
-- `total` = `evaluateFormula(config.pointFormula, actor)`
+- `total` = sum of every point component (`getPointComponents`) + every matching point rule
+- **A failing component fails the whole pool** — throws `PointComponentError` (carries `.component`). Skipping it would give a plausible but wrong total. A failing *rule* is skipped silently.
+- `breakdown` = `[{ kind: 'component'|'rule', label, value, resolvedFormula? }]` — components first, then matching rules; `resolvedFormula` (components only) is `Roll.replaceFormulaData(formula, rollData)`, e.g. `7*2`
+- Callers (`LanguageDialog`, badge) catch the error and use `describePointPoolError(e, isGM)` — generic text for players, component label/formula/error for GMs; `console.warn` on GM clients only
 - `spent` = sum of `effectiveCost` (from `resolveLanguageCost`) for each acquired language
 - **Cousin discounts ARE counted** in spent (overrides original CLAUDE.md spec, per user direction)
 - If a language ID is in actor flags but not in config, it is skipped silently
@@ -189,6 +205,8 @@ All cost/requirement values in the config come from `<input type="text">` elemen
 - All `data-field` inputs sync to `#config` via `_onRender` event listeners keyed by `data-category-id` / `data-language-id` / `data-cousin-index`.
 - Cousin index (`data-cousin-index`) maps directly to array position — cousin sort must happen **before** building `_options` so indices are consistent.
 - Validation uses `MOCK_ACTOR` (all traits 0, level 1, proficiency 1) to test formulas before save.
+- Point components: each must have a non-empty formula that evaluates to an integer; only their **sum** must be positive (one component may be ≤ 0). The ✕ button is hidden on the last component.
+- Point components and point rules are reordered by drag-and-drop via `enableDragReorder` (`drag-reorder.mjs`): only the `.drag-handle` (`draggable="true"`) starts a drag, rows carry `data-row-id`, rows only move within their own list, and the dragged row itself moves live as the insertion marker. On drop, `_reorder(key, ids)` re-sorts the `#config` array and re-renders. Mouse-only (native HTML5 DnD). Uses a private MIME type so dropping over an `<input>` never pastes text.
 
 ---
 
@@ -202,7 +220,8 @@ All cost/requirement values in the config come from `<input type="text">` elemen
 - Glow state classes (PC only, applied async):
   - `.dh-lang-badge--unspent` — `pool.remaining > 0` — amber pulse
   - `.dh-lang-badge--overspent` — `pool.spent > pool.total` — red pulse
-  - Neither class — exactly spent or point pool evaluation failed
+  - `.dh-lang-badge--error` — point pool threw (a component failed) — steady purple outline, no pulse; tooltip gains a `⚠` line (generic for players, detailed for GMs)
+  - Neither class — exactly spent, or remaining points can't buy anything
 
 ---
 
@@ -215,8 +234,15 @@ All cost/requirement values in the config come from `<input type="text">` elemen
 | `DHLANG.Settings.menuLabel` | Button text |
 | `DHLANG.Settings.menuHint` | Button hint text |
 | `DHLANG.Settings.title` | Window title |
-| `DHLANG.Settings.pointFormula` | Point formula field label |
-| `DHLANG.Settings.pointFormulaHint` | Point formula hint text |
+| `DHLANG.Settings.pointComponents` | Point components section label |
+| `DHLANG.Settings.pointFormulaHint` | Point components hint text (available `@` paths) |
+| `DHLANG.Settings.componentLabel` / `componentFormula` | Component input aria-labels |
+| `DHLANG.Settings.componentLabelPlaceholder` | Component label placeholder |
+| `DHLANG.Settings.addComponent` | Add component button |
+| `DHLANG.Settings.confirmDeleteComponent` | Component deletion confirm body |
+| `DHLANG.Settings.componentFormulaEmpty` | Validation — empty component formula (`{label}`) |
+| `DHLANG.Settings.componentsNotPositive` | Validation — components sum ≤ 0 |
+| `DHLANG.Settings.dragToReorder` | Drag handle tooltip |
 | `DHLANG.Settings.categoryName` | Category name input placeholder |
 | `DHLANG.Settings.languageName` | Language name input placeholder |
 | `DHLANG.Settings.addCategory` | Add category button |
@@ -263,6 +289,16 @@ All cost/requirement values in the config come from `<input type="text">` elemen
 | `DHLANG.Dialog.confirmAcquireContent` | Acquisition confirm body (`{name}`, `{cost}`) |
 | `DHLANG.Dialog.adversaryFreeNote` | Adversary disclaimer note |
 | `DHLANG.Dialog.noLanguagesConfigured` | Empty state hint |
+| `DHLANG.Dialog.poolBreakdownBase` | Fallback label for an unlabelled point component |
+| `DHLANG.Dialog.poolBreakdownBonus` | Fallback label for an unlabelled point rule |
+| `DHLANG.Dialog.poolUnavailable` | Acquire button tooltip when the pool failed |
+
+### Pool errors
+| Key | Purpose |
+|---|---|
+| `DHLANG.Pool.errorGeneric` | Player-facing pool failure message |
+| `DHLANG.Pool.errorComponent` | GM-facing component failure (`{label}`, `{formula}`, `{error}`) |
+| `DHLANG.Pool.errorOther` | GM-facing non-component failure (`{error}`) |
 
 ---
 
@@ -274,6 +310,7 @@ All cost/requirement values in the config come from `<input type="text">` elemen
 | `.dh-lang-badge` | `<span>` | Base badge — inline-flex, gold icon, next to actor name |
 | `.dh-lang-badge--unspent` | `<span>` | Amber pulse glow — PC has unspent points |
 | `.dh-lang-badge--overspent` | `<span>` | Red pulse glow — PC has overspent points |
+| `.dh-lang-badge--error` | `<span>` | Steady purple outline — point pool could not be calculated |
 
 ### Language Dialog
 | Class | Element | Purpose |
@@ -285,6 +322,9 @@ All cost/requirement values in the config come from `<input type="text">` elemen
 | `.point-fill.overspent` | `<div>` | Progress bar fill (red) |
 | `.point-label` | `<span>` | "Points" label |
 | `.point-values` | `<span>` | "X / Y" text |
+| `.point-formula-info` | `<span>` | ⓘ — `data-tooltip-html` with one `Label: 7*2 = 14` line per component |
+| `.point-bar-error` | `<p>` | Purple warning shown instead of the point bar when the pool failed |
+| `.pool-breakdown` | `<details>` | Points Breakdown — shown only when it has more than one line |
 | `.adversary-note` | `<p>` | Adversary disclaimer |
 | `.lang-category` | `<details>` | Collapsible category |
 | `.lang-category-name` | `<summary>` | Category header |
@@ -305,7 +345,12 @@ All cost/requirement values in the config come from `<input type="text">` elemen
 |---|---|---|
 | `.dh-settings-config` | root | Settings container |
 | `.config-section` | `<div>` | Generic section wrapper |
-| `.formula-section` | `<div>` | Point formula section |
+| `.formula-section` | `<div>` | Point components section |
+| `.point-components-list` | `<div>` | Drag-reorder container for component rows |
+| `.point-component-row` | `<div>` | Single component: handle, label, formula, ✕ |
+| `.point-rule-row` | `<div>` | Single point pool rule (handle in the left gutter) |
+| `.drag-handle` | `<span>` | ⋮⋮ grip — the only draggable part of a row |
+| `.is-dragging` | row | Row being dragged — acts as the insertion marker |
 | `.categories-section` | `<div>` | All categories wrapper |
 | `.config-category` | `<details>` | Collapsible category block |
 | `.category-header` | `<summary>` | Category summary row |
@@ -363,7 +408,7 @@ When extending this module, follow these patterns:
 - **No chat integration** — language acquisition does not post to chat.
 - **No macro/API surface** — there is no public API for other modules to interact with.
 - **Adversary acquisition is GM-only** — non-GM players cannot see or click acquire buttons on adversary sheets (the `canAcquire` flag is always false for non-GM on adversaries).
-- **Formula errors during badge render** fail silently — a broken `pointFormula` means no glow class is applied, but the badge still renders.
+- **Point pool errors are only caught at runtime** — validation runs against `MOCK_ACTOR`, so a component that works there can still fail on a real actor (e.g. missing roll data). That shows as the purple badge outline and the dialog warning, not a save-time error.
 - **The `badge-tooltip.hbs` template** is a stub and is not used — tooltip text is set via `data-tooltip` attribute directly on the badge element.
 
 ---

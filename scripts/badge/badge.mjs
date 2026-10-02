@@ -1,5 +1,11 @@
 import { MODULE_ID, FLAGS, SETTINGS, ACTOR_TYPES } from '../constants.mjs';
-import { getAcquiredLanguageIds, findLanguage, calculatePointPool, resolveLanguageCost } from '../utils/languages.mjs';
+import {
+  getAcquiredLanguageIds,
+  findLanguage,
+  calculatePointPool,
+  describePointPoolError,
+  resolveLanguageCost,
+} from '../utils/languages.mjs';
 
 /**
  * Returns true if the actor can afford at least one unacquired language,
@@ -169,8 +175,13 @@ export async function injectLanguageBadge(app, html, actor) {
         const canBuySomething = await _canAffordAny(config, acquiredIds, actor, pool.remaining);
         if (canBuySomething) badge.classList.add('dh-lang-badge--unspent');
       }
-    } catch (_e) {
-      // Formula evaluation failed — display badge without a state class.
+    } catch (e) {
+      // A point component failed — flag the badge so the GM notices the broken config.
+      // Players get a generic line; GMs get the failing component and error.
+      badge.classList.add('dh-lang-badge--error');
+      const warning = foundry.utils.escapeHTML(describePointPoolError(e, game.user.isGM));
+      badge.dataset.tooltip = `${tooltip}<br>⚠ ${warning}`;
+      if (game.user.isGM) console.warn(`daggerheart-languages | Point pool for "${actor.name}" failed:`, e);
     }
   }
 }
