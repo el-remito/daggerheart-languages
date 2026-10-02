@@ -365,3 +365,19 @@ When extending this module, follow these patterns:
 - **Adversary acquisition is GM-only** — non-GM players cannot see or click acquire buttons on adversary sheets (the `canAcquire` flag is always false for non-GM on adversaries).
 - **Formula errors during badge render** fail silently — a broken `pointFormula` means no glow class is applied, but the badge still renders.
 - **The `badge-tooltip.hbs` template** is a stub and is not used — tooltip text is set via `data-tooltip` attribute directly on the badge element.
+
+---
+
+## Agent skills
+
+### Issue tracker
+
+Issues are tracked in GitHub Issues for `el-remito/daggerheart-languages`, using the `gh` CLI. See `docs/agents/issue-tracker.md`.
+
+### Triage labels
+
+Default triage vocabulary: `needs-triage`, `needs-info`, `ready-for-agent`, `ready-for-human`, `wontfix`. See `docs/agents/triage-labels.md`.
+
+### Domain docs
+
+Single-context: a root `CONTEXT.md` plus `docs/adr/`, both created lazily. See `docs/agents/domain.md`.
